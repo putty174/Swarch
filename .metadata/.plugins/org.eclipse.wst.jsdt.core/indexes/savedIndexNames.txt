@@ -1,0 +1,6 @@
+INDEX VERSION 1.121+E:\Users\Max\Documents\GitHub\Swarch\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+1638393709.index
+3484670194.index
+1542226547.index
+2364196333.index
+420244760.index
