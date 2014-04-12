@@ -1,0 +1,9 @@
+<center><h1>Swarch</h1></center>
+<center>Name</center>
+<center><input type='text' id="NAME"></center>
+<br>
+<center>Password</center>
+<center><input type='text' id="PASS"></center>
+<center></center>
+<br>
+<center><button type="button" onclick="game()">Log In</button></center>

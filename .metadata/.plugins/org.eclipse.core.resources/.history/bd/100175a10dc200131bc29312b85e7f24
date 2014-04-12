@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Swarch</title>
+<link rel="stylesheet" type="text/css" href="swarch.css">
+</head>
+<body>
+<script type="text/javascript" src="./js/swarch.js"></script>
+<script type="text/javascript">
+var game = new game({boardContainer: "game-area",fullScreen: true});
+</script>
+</body>
+</html>

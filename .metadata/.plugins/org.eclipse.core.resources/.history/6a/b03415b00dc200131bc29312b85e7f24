@@ -1,0 +1,4 @@
+function game(name){
+	document.write("GA");
+	document.write(name);
+}

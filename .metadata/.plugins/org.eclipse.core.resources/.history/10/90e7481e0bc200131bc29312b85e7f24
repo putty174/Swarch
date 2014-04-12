@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Swarch</title>
+<link rel="stylesheet" href="swarch.css">
+</head>
+<body>
+<script src="swarch.js"></script>
+</body>
+</html>

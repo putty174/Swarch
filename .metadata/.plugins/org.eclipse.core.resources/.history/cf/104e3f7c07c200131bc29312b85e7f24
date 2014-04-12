@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Swarch</title>
+<link rel="stylesheet" href="swarch.css">
+<script type="text/javascript">
+function getInfo()
+{
+	var name = document.getElementById('NAME');
+	var pass = document.getElementById('PASS');
+}
+</script>
+</head>
+<body>
+<h1>Swarch</h1>
+<center>Name</center>
+<input type='text' id="NAME">
+<p>Pass: <input type='text' id="PASS"></p>
+<script src="swarch.js"></script>
+</body>
+</html>
