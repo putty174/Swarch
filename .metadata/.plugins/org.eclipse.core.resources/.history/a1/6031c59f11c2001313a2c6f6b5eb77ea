@@ -1,0 +1,4 @@
+#game {
+	background: black;
+	color: white;
+	}
