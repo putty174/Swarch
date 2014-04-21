@@ -1,3 +1,0 @@
-function game(name){
-	document.write(name);
-}

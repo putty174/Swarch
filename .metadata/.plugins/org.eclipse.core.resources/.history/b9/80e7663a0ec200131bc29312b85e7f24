@@ -1,5 +1,0 @@
-function game(){
-	var name = document.getElementById('pass').value;
-	document.write("GA");
-	document.write(name);
-}
