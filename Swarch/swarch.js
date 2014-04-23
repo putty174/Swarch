@@ -8,7 +8,7 @@ var enemies = [];   //List of enemies
 var pellets = [];   //List of pellets on screen
 
 var wait = -1; // How long to wait before moving again
-var speed = 1;
+var speed = 2;
 var dx = 0; //Horizontal speed
 var dy = 0; //Vertical speed
 var score = 0;  //Player score
@@ -18,6 +18,24 @@ var canvas = document.createElement("canvas");
 canvas.width = width;
 canvas.height = height;
 var ctx = canvas.getContext("2d");
+
+var fps = {
+	startTime : 0,
+	frameNumber : 0,
+	getFPS : function(){
+		this.frameNumber++;
+		var d = new Date().getTime(),
+			currentTime = ( d - this.startTime ) / 1000,
+			result = Math.floor( ( this.frameNumber / currentTime ) );
+
+		if( currentTime > 1 ){
+			this.startTime = new Date().getTime();
+			this.frameNumber = 0;
+		}
+		return result;
+
+	}	
+};
 
 //Setup script to prepare for game
 function start() {
@@ -166,8 +184,12 @@ var main = function () {
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText(score, me.x, me.y);
-    
+	
+	//setTimeout(main, 1000 / 60 );
+    ctx.fillStyle = "#FFFFFF";
+	ctx.textAlign = "right";
+    ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
 }
 
 //Set game loop and framerate
-setInterval(main, 1);
+setInterval(main, 1000 / 60);
