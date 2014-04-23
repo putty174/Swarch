@@ -13,6 +13,7 @@ canvas.width = width;
 canvas.height = height;
 var ctx = canvas.getContext("2d");
 
+// FPS Counter
 var fps = {
 	startTime : 0,
 	frameNumber : 0,
@@ -27,7 +28,6 @@ var fps = {
 			this.frameNumber = 0;
 		}
 		return result;
-
 	}	
 };
 
@@ -86,106 +86,79 @@ pellet.prototype.draw = function (ctx) {
     ctx.fillRect(this.x, this.y, this.w, this.h);
 }
 
+pellet.prototype.die = function() {
+	this.x = Math.min(width * Math.random(), width - 10);
+    this.y = Math.min(height * Math.random(), height - 10);
+    this.w = 10;
+    this.h = 10;
+    this.score = 0;
+    this.speed = 2;
+	this.dx = 0;
+	this.dy = 0;
+}
+
+pellet.prototype.eat = function (i) {
+	this.score++;
+    pellets.splice(i, 1);
+	this.x -= 1;
+	this.y -= 1;
+    this.w += 2;
+    this.h += 2;
+    this.speed *= 0.9;
+    this.wait = (this.w - 10) / 2;
+    addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
+}
+
+// Eat player
+pellet.prototype.eatPlayer = function (player) {
+	if (player !== undefined) {
+		this.score += player.score + 1;
+		this.x -= player.score + 1;
+		this.y -= player.score + 1;
+		this.w += (player.score + 1) * 2;
+		this.h += (player.score + 1) * 2;
+		this.speed *= Math.pow(0.9, player.score + 1);
+		this.wait = (this.w - 10) / 2;
+		player.die();
+	}
+}
+
 //Check collision with walls or pellets
 var checkCollide = function () {
 
     //Wall collision
     if (me.x < 0 || (me.x + me.w) > width || me.y < 0 || (me.y + me.h) > height) {
-        die();
+        me.die();
     }
-    if (enemy.x < 0 || (enemy.x + me.w) > width || enemy.y < 0 || (enemy.y + enemy.h) > height) {
-        dieEnemy();
+    if (enemy.x < 0 || (enemy.x + enemy.w) > width || enemy.y < 0 || (enemy.y + enemy.h) > height) {
+        enemy.die();
     }
 
     //Check collision between players
-    if (me.x <= (enemy.x + enemy.w) && enemy.x <= (me.x + me.w) && me.y <= (enemy.y + enemy.h) && enemy.y <= (me.y + me.h)
-    		&& me.score > enemy.score) {
-        eatPlayer("me");
-    }
-    if (enemy.x <= (me.x + me.w) && me.x <= (enemy.x + enemy.w) && enemy.y <= (me.y + me.h) && me.y <= (enemy.y + enemy.h)
-    		&& enemy.score > me.score) {
-        eatPlayer("enemy");
+    if (me.x <= (enemy.x + enemy.w) && enemy.x <= (me.x + me.w) && me.y <= (enemy.y + enemy.h) && enemy.y <= (me.y + me.h)) {
+    	if (me.score > enemy.score) {
+			me.eatPlayer(enemy);
+    	}
+		else if (me.score < enemy.score) {
+			enemy.eatPlayer(me);
+		}
+		else {
+			me.die();
+			enemy.die();
+		}
     }
 
     //Collision with pellets
     for (var i = 0; i < pellets.length; i++) {
         if (me.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (me.x + me.w) && me.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (me.y + me.h)) {
-            eat(i);
+            me.eat(i);
         }
 
         if (enemy.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (enemy.x + enemy.w) && enemy.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (enemy.y + enemy.h)) {
-            enemyEat(i);
+            enemy.eat(i);
         }
     }
 }
-
-//Die and respawn to center
-var die = function () {
-    me.x = Math.min(width * Math.random(), width - 10);
-    me.y = Math.min(height * Math.random(), height - 10);
-    me.w = 10;
-    me.h = 10;
-    me.score = 0;
-    me.speed = 2;
-}
-
-var dieEnemy = function () {
-    enemy.x = Math.min(width * Math.random(), width - 10);
-    enemy.y = Math.min(width * Math.random(), width - 10);
-    enemy.w = 10;
-    enemy.h = 10;
-    enemy.score = 0;
-    enemy.speed = 2;
-};
-
-//Eat a pellet, grow, slow down, and put a new one somewhere
-var eat = function (i) {
-    me.score++;
-    pellets.splice(i, 1);
-	me.x -= 1;
-	me.y -= 1;
-    me.w += 2;
-    me.h += 2;
-    me.speed *= 0.9;
-    me.wait = (me.w - 10) / 2;
-    addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
-}
-
-var enemyEat = function (i) {
-    enemy.score++;
-    pellets.splice(i, 1);
-    enemy.x -= 1;
-    enemy.y -= 1;
-    enemy.w += 2;
-    enemy.h += 2;
-    enemy.speed *= 0.9;
-    enemy.wait = (enemy.w - 10) / 2;
-    addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
-};
-
-//Player eats another Player
-var eatPlayer = function (player) {
-    if (player == "me") {
-        me.score += enemy.score + 1;
-        me.x -= enemy.score + 1;
-        me.y -= enemy.score + 1;
-        me.w += (enemy.score + 1) * 2;
-        me.h += (enemy.score + 1) * 2;
-        me.speed *= Math.pow(0.9, enemy.score + 1);
-        me.wait = (me.w - 10) / 2;
-        dieEnemy();
-    }
-    else if (player == "enemy") {
-        enemy.score += me.score + 1;
-        enemy.x -= me.score + 1;
-        enemy.y -= me.score + 1;
-        enemy.w += (me.score + 1) * 2;
-        enemy.h += (me.score + 1) * 2;
-        enemy.speed *= Math.pow(0.9, me.score + 1);
-        enemy.wait = (enemy.w - 10) / 2;
-        die();
-    }
-};
 
 //Reads input from keyboard and moves player accordingly
 var update = function () {
@@ -306,7 +279,6 @@ var main = function () {
 		ctx.fillText(me.score, me.x, me.y);
         ctx.fillText(enemy.score, enemy.x, enemy.y);
 
-		//setTimeout(main, 1000 / 60 );
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
