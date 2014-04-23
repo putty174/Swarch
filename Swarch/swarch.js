@@ -1,23 +1,11 @@
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
 
-var keys = []; // List of currently pressed keys
+var key; // Currently pressed key
 
 var me; //Player
 var enemies = [];   //List of enemies
 var pellets = [];   //List of pellets on screen
-
-var wait = -1; // How long to wait before moving again
-var speed = 2;
-var dx = 0; //Horizontal speed
-var dy = 0; //Vertical speed
-var score = 0;  //Player score
-
-var enemyWait = -1;
-var enemySpeed = 1;
-var dxE = 0;
-var dyE = 0;
-var enemyScore = 0;
 
 //Set up area to draw game on. PLEASE DO NOT TOUCH!!!
 var canvas = document.createElement("canvas");  
@@ -64,8 +52,9 @@ function start() {
 
 //Setup game by placing objects
 var setup = function () {
-    me = new pellet(width / 2, height / 2, 10, 10, "#00FF00");
-    enemy = new pellet(width / 2 + 50, height / 2 + 50, 10, 10, "#FFFFFF");
+    me = new pellet(width / 3, height / 3, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
+    enemy = new pellet(width * 2 / 3, height * 2 / 3, 10, 10, "#FF0000", 2, 0, 0, 0, 0);
+
     addPellet(new pellet(width * 0.25, height * 0.25, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.25, height * 0.75, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.75, height * 0.25, 10, 10, "#AAAAAA"));
@@ -78,16 +67,17 @@ var addPellet = function (pellet) {
 }
 
 //Pellet class
-function pellet(x, y, w, h, fill, s, sc, movex, movey) {
+function pellet(x, y, w, h, fill, s, sc, mx, my, w) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
     this.fill = fill || "#AAAAAA";
-    this.speed = s || 1;
+    this.speed = s || 2;
     this.score = sc || 0;
-    this.dx = movex || 0;
-    this.dy = movey || 0;
+    this.dx = mx || 0;
+    this.dy = my || 0;
+    this.wait = w || 0;
 }
 
 //Pellet helper function to draw pellet
@@ -109,11 +99,11 @@ var checkCollide = function () {
 
     //Check collision between players
     if (me.x <= (enemy.x + enemy.w) && enemy.x <= (me.x + me.w) && me.y <= (enemy.y + enemy.h) && enemy.y <= (me.y + me.h)
-    		&& score > enemyScore) {
+    		&& me.score > enemy.score) {
         eatPlayer("me");
     }
     if (enemy.x <= (me.x + me.w) && me.x <= (enemy.x + enemy.w) && enemy.y <= (me.y + me.h) && me.y <= (enemy.y + enemy.h)
-    		&& enemyScore > score) {
+    		&& enemy.score > me.score) {
         eatPlayer("enemy");
     }
 
@@ -131,64 +121,68 @@ var checkCollide = function () {
 
 //Die and respawn to center
 var die = function () {
-    me.x = width / 2;
-    me.y = height / 2;
+    me.x = Math.min(width * Math.random(), width - 10);
+    me.y = Math.min(height * Math.random(), height - 10);
     me.w = 10;
     me.h = 10;
-    score = 1;
-    speed = 1;
-	dx = 0;
-	dy = 0;
+    me.score = 0;
+    me.speed = 2;
 }
 
 var dieEnemy = function () {
-    enemy.x = width / 2 + 50;
-    enemy.y = height / 2 + 50;
+    enemy.x = Math.min(width * Math.random(), width - 10);
+    enemy.y = Math.min(width * Math.random(), width - 10);
     enemy.w = 10;
     enemy.h = 10;
-    enemyScore = 1;
-    enemySpeed = 1;
+    enemy.score = 0;
+    enemy.speed = 2;
 };
 
 //Eat a pellet, grow, slow down, and put a new one somewhere
 var eat = function (i) {
-    score++;
+    me.score++;
     pellets.splice(i, 1);
 	me.x -= 1;
 	me.y -= 1;
-    me.w += 1;
-    me.h += 1;
-    speed *= 0.95;
-    wait = (me.w - 10) / 2;
+    me.w += 2;
+    me.h += 2;
+    me.speed *= 0.9;
+    me.wait = (me.w - 10) / 2;
     addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
 }
 
 var enemyEat = function (i) {
-    enemyScore++;
+    enemy.score++;
     pellets.splice(i, 1);
+    enemy.x -= 1;
+    enemy.y -= 1;
     enemy.w += 2;
     enemy.h += 2;
-    enemySpeed *= 0.95;
-    enemyWait = (enemy.w - 10) / 2;
+    enemy.speed *= 0.9;
+    enemy.wait = (enemy.w - 10) / 2;
     addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
 };
 
 //Player eats another Player
 var eatPlayer = function (player) {
     if (player == "me") {
-        score = score + enemyScore;
-        me.w += enemyScore * 2;
-        me.h += enemyScore * 2;
-        speed *= 0.95;
-        wait = (me.w - 10) / 2;
+        me.score += enemy.score + 1;
+        me.x -= enemy.score + 1;
+        me.y -= enemy.score + 1;
+        me.w += (enemy.score + 1) * 2;
+        me.h += (enemy.score + 1) * 2;
+        me.speed *= Math.pow(0.9, enemy.score + 1);
+        me.wait = (me.w - 10) / 2;
         dieEnemy();
     }
     else if (player == "enemy") {
-        enemyScore = enemyScore + score;
-        enemy.w += score * 2;
-        enemy.h += score * 2;
-        enemySpeed *= 0.95;
-        enemyWait = (enemy.w - 10) / 2;
+        enemy.score += me.score + 1;
+        enemy.x -= me.score + 1;
+        enemy.y -= me.score + 1;
+        enemy.w += (me.score + 1) * 2;
+        enemy.h += (me.score + 1) * 2;
+        enemy.speed *= Math.pow(0.9, me.score + 1);
+        enemy.wait = (enemy.w - 10) / 2;
         die();
     }
 };
@@ -224,52 +218,60 @@ var update = function () {
 	}
 	*/
 
-	$(document).keydown(function(e){
+    $(document).keydown(function (e) {
+        key = e.keyCode;
 	    if (e.keyCode == 37) {  //left
-	        dx = -speed;
-	        dy = 0;
+	        me.dx = -me.speed;
+	        me.dy = 0;
 	    }
 	    else if (e.keyCode == 39) { //right
-	        dx = speed;
-	        dy = 0;
+	        me.dx = me.speed;
+	        me.dy = 0;
 	    }
 	    else if (e.keyCode == 38) { //up
-	        dx = 0;
-	        dy = -speed;
+	        me.dx = 0;
+	        me.dy = -me.speed;
 	    }
 	    else if (e.keyCode == 40) { //down
-	        dx = 0;
-	        dy = speed;
+	        me.dx = 0;
+	        me.dy = me.speed;
+	    }
+	    else if (e.keyCode == 32) {
+	        me.dx = 0;
+	        me.dy = 0;
 	    }
 	    else if (e.keyCode == 65) { //left
-	        dxE = -speed;
-	        dyE = 0;
+	        enemy.dx = -enemy.speed;
+	        enemy.dy = 0;
 	    }
 	    else if (e.keyCode == 68) { //right
-	        dxE = speed;
-	        dyE = 0;
+	        enemy.dx = enemy.speed;
+	        enemy.dy = 0;
 	    }
 	    else if (e.keyCode == 87) { //up
-	        dxE = 0;
-	        dyE = -speed;
+	        enemy.dx = 0;
+	        enemy.dy = -enemy.speed;
 	    }
 	    else if (e.keyCode == 83) { //down
-	        dxE = 0;
-	        dyE = speed;
+	        enemy.dx = 0;
+	        enemy.dy = enemy.speed;
 	    }
-	    
+	    else if (e.keyCode == 88) { //stop
+	        enemy.dx = 0;
+	        enemy.dy = 0;
+	    }
 	});
     
-    if (wait < 0) {
-        me.x += dx;
-        me.y += dy;
+    if (me.wait < 0) {
+        me.x += me.dx;
+        me.y += me.dy;
     }
-    wait -= 10;
-    if (enemyWait < 0) {
-        enemy.x += dxE;
-        enemy.y += dyE;
+    me.wait -= 10;
+    if (enemy.wait < 0) {
+        enemy.x += enemy.dx;
+        enemy.y += enemy.dy;
     }
-    enemyWait -= 10;
+    enemy.wait -= 10;
 }
 
 //Render Loop
@@ -301,12 +303,18 @@ var main = function () {
 		ctx.font = "10px Helvetica";
 		ctx.textAlign = "left";
 		ctx.textBaseline = "top";
-		ctx.fillText(score, me.x, me.y);
+		ctx.fillText(me.score, me.x, me.y);
+        ctx.fillText(enemy.score, enemy.x, enemy.y);
 
 		//setTimeout(main, 1000 / 60 );
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
+
+		//ctx.font = "24px Helvetica";
+		//ctx.fillStyle = "#FFFFFF";
+		//ctx.textAlign = "left";
+		//ctx.fillText(me.speed , 20, 20);
 	}
 }
 
