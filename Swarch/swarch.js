@@ -1,7 +1,7 @@
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
 
-var key = 0;    //Which key was last pressed
+var keys = []; // List of currently pressed keys
 
 var me; //Player
 var enemies = [];   //List of enemies
@@ -93,8 +93,10 @@ var die = function () {
 var eat = function (i) {
     score++;
     pellets.splice(i, 1);
-    me.w += 2;
-    me.h += 2;
+	me.x -= 1;
+	me.y -= 1;
+    me.w += 1;
+    me.h += 1;
     speed *= 0.95;
     wait = (me.w - 10) / 2;
     addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
@@ -103,29 +105,32 @@ var eat = function (i) {
 //Reads input from keyboard and moves player accordingly
 var update = function () {
     checkCollide();
-    addEventListener("keydown", function (e) {
-        key = e.keyCode;
-    }, false);
-    if (key == 32) {
-        dx = 0;
-        dy = 0;
-    }
-    else if (key == 37) {
-        dx = -speed
-        dy = 0;
-    }
-    else if (key == 38) {
-        dx = 0;
-        dy = -speed;
-    }
-    else if (key == 39) {
-        dx = speed;
-        dy = 0;
-    }
-    else if (key == 40) {
-        dx = 0;
-        dy = speed;
-    }
+	addEventListener("keydown", function (e) {
+		keys[e.keyCode] = true;
+	}, false);
+	addEventListener("keyup", function (e) {
+		keys[e.keyCode] = false;
+	}, false);
+	
+	if (keys[37]) {
+		dx = -speed;
+	}
+	else if (keys[39]) {
+		dx = speed;
+	}
+	else {
+		dx = 0;
+	}
+	if (keys[38]) {
+		dy = -speed;
+	}
+	else if (keys[40]) {
+		dy = speed;
+	}
+	else {
+		dy = 0;
+	}
+	
     if (wait < 0) {
         me.x += dx;
         me.y += dy;
