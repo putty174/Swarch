@@ -137,6 +137,8 @@ var die = function () {
     me.h = 10;
     score = 1;
     speed = 1;
+	dx = 0;
+	dy = 0;
 }
 
 var dieEnemy = function () {
@@ -194,6 +196,7 @@ var eatPlayer = function (player) {
 //Reads input from keyboard and moves player accordingly
 var update = function () {
     checkCollide();
+<<<<<<< HEAD
     addEventListener("keydown", function (e) {
         keys[e.keyCode] = true;
     }, false);
@@ -220,6 +223,58 @@ var update = function () {
         dy = 0;
     }
 
+=======
+	
+	/*
+	$(document).keydown(function(e){
+		keys[e.keyCode] = true;
+	});
+	$(document).keyup(function(e){
+		keys[e.keyCode] = false;
+	});
+	
+	if (keys[37]) {
+		dx = -speed;
+	}
+	else if (keys[39]) {
+		dx = speed;
+	}
+	else {
+		dx = 0;
+	}
+	if (keys[38]) {
+		dy = -speed;
+	}
+	else if (keys[40]) {
+		dy = speed;
+	}
+	else {
+		dy = 0;
+	}
+	*/
+	
+	$(document).keydown(function(e){
+		if (e.keyCode == 37) {
+			dx = -speed;
+		}
+		else if (e.keyCode == 39) {
+			dx = speed;
+		}
+		else {
+			dx = 0;
+		}
+		if (e.keyCode == 38) {
+			dy = -speed;
+		}
+		else if (e.keyCode == 40) {
+			dy = speed;
+		}
+		else {
+			dy = 0;
+		}
+	});
+	
+>>>>>>> 553f12db7964d4a85bc91d954218e39044d4e160
     if (wait < 0) {
         me.x += dx;
         me.y += dy;
