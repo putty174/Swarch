@@ -105,6 +105,8 @@ var die = function () {
     me.h = 10;
     score = 0;
     speed = 1;
+	dx = 0;
+	dy = 0;
 }
 
 //Eat a pellet, grow, slow down, and put a new one somewhere
@@ -123,12 +125,14 @@ var eat = function (i) {
 //Reads input from keyboard and moves player accordingly
 var update = function () {
     checkCollide();
-	addEventListener("keydown", function (e) {
+	
+	/*
+	$(document).keydown(function(e){
 		keys[e.keyCode] = true;
-	}, false);
-	addEventListener("keyup", function (e) {
+	});
+	$(document).keyup(function(e){
 		keys[e.keyCode] = false;
-	}, false);
+	});
 	
 	if (keys[37]) {
 		dx = -speed;
@@ -148,6 +152,28 @@ var update = function () {
 	else {
 		dy = 0;
 	}
+	*/
+	
+	$(document).keydown(function(e){
+		if (e.keyCode == 37) {
+			dx = -speed;
+		}
+		else if (e.keyCode == 39) {
+			dx = speed;
+		}
+		else {
+			dx = 0;
+		}
+		if (e.keyCode == 38) {
+			dy = -speed;
+		}
+		else if (e.keyCode == 40) {
+			dy = speed;
+		}
+		else {
+			dy = 0;
+		}
+	});
 	
     if (wait < 0) {
         me.x += dx;
