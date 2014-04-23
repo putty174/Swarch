@@ -52,7 +52,7 @@ function start() {
 	document.body.appendChild(logOut);
 	document.write("<br>");
 	document.body.appendChild(canvas);
-
+	
 	setup();
 }
 
@@ -175,20 +175,22 @@ var clean = function () {
 
 //Main Game Loop
 var main = function () {
-    clean();
+	if (me !== undefined) {
+		clean();
 
-    update();
-    render();
-    ctx.fillStyle = "rgb(0, 0, 0)";
-    ctx.font = "10px Helvetica";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-    ctx.fillText(score, me.x, me.y);
-	
-	//setTimeout(main, 1000 / 60 );
-    ctx.fillStyle = "#FFFFFF";
-	ctx.textAlign = "right";
-    ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
+		update();
+		render();
+		ctx.fillStyle = "rgb(0, 0, 0)";
+		ctx.font = "10px Helvetica";
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";
+		ctx.fillText(score, me.x, me.y);
+
+		//setTimeout(main, 1000 / 60 );
+		ctx.fillStyle = "#FFFFFF";
+		ctx.textAlign = "right";
+		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
+	}
 }
 
 //Set game loop and framerate
