@@ -13,6 +13,12 @@ var dx = 0; //Horizontal speed
 var dy = 0; //Vertical speed
 var score = 0;  //Player score
 
+var enemyWait = -1;
+var enemySpeed = 1;
+var dxE = 0;
+var dyE = 0;
+var enemyScore = 0;
+
 //Set up area to draw game on. PLEASE DO NOT TOUCH!!!
 var canvas = document.createElement("canvas");  
 canvas.width = width;
@@ -59,6 +65,7 @@ function start() {
 //Setup game by placing objects
 var setup = function () {
     me = new pellet(width / 2, height / 2, 10, 10, "#00FF00");
+    enemy = new pellet(width / 2 + 50, height / 2 + 50, 10, 10, "#FFFFFF");
     addPellet(new pellet(width * 0.25, height * 0.25, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.25, height * 0.75, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.75, height * 0.25, 10, 10, "#AAAAAA"));
@@ -71,12 +78,16 @@ var addPellet = function (pellet) {
 }
 
 //Pellet class
-function pellet(x, y, w, h, fill) {
+function pellet(x, y, w, h, fill, s, sc, movex, movey) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
     this.fill = fill || "#AAAAAA";
+    this.speed = s || 1;
+    this.score = sc || 0;
+    this.dx = movex || 0;
+    this.dy = movey || 0;
 }
 
 //Pellet helper function to draw pellet
@@ -87,12 +98,33 @@ pellet.prototype.draw = function (ctx) {
 
 //Check collision with walls or pellets
 var checkCollide = function () {
+
+    //Wall collision
     if (me.x < 0 || (me.x + me.w) > width || me.y < 0 || (me.y + me.h) > height) {
         die();
     }
+    if (enemy.x < 0 || (enemy.x + me.w) > width || enemy.y < 0 || (enemy.y + enemy.h) > height) {
+        dieEnemy();
+    }
+
+    //Check collision between players
+    if (me.x <= (enemy.x + enemy.w) && enemy.x <= (me.x + me.w) && me.y <= (enemy.y + enemy.h) && enemy.y <= (me.y + me.h)
+    		&& score > enemyScore) {
+        eatPlayer("me");
+    }
+    if (enemy.x <= (me.x + me.w) && me.x <= (enemy.x + enemy.w) && enemy.y <= (me.y + me.h) && me.y <= (enemy.y + enemy.h)
+    		&& enemyScore > score) {
+        eatPlayer("enemy");
+    }
+
+    //Collision with pellets
     for (var i = 0; i < pellets.length; i++) {
         if (me.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (me.x + me.w) && me.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (me.y + me.h)) {
             eat(i);
+        }
+
+        if (enemy.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (enemy.x + enemy.w) && enemy.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (enemy.y + enemy.h)) {
+            enemyEat(i);
         }
     }
 }
@@ -103,9 +135,18 @@ var die = function () {
     me.y = height / 2;
     me.w = 10;
     me.h = 10;
-    score = 0;
+    score = 1;
     speed = 1;
 }
+
+var dieEnemy = function () {
+    enemy.x = width / 2 + 50;
+    enemy.y = height / 2 + 50;
+    enemy.w = 10;
+    enemy.h = 10;
+    enemyScore = 1;
+    enemySpeed = 1;
+};
 
 //Eat a pellet, grow, slow down, and put a new one somewhere
 var eat = function (i) {
@@ -120,40 +161,95 @@ var eat = function (i) {
     addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
 }
 
+var enemyEat = function (i) {
+    enemyScore++;
+    pellets.splice(i, 1);
+    enemy.w += 2;
+    enemy.h += 2;
+    enemySpeed *= 0.95;
+    enemyWait = (enemy.w - 10) / 2;
+    addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
+};
+
+//Player eats another Player
+var eatPlayer = function (player) {
+    if (player == "me") {
+        score = score + enemyScore;
+        me.w += enemyScore * 2;
+        me.h += enemyScore * 2;
+        speed *= 0.95 * enemyScore;
+        wait = (me.w - 10) / 2;
+        dieEnemy();
+    }
+    else if (player == "enemy") {
+        enemyScore = enemyScore + score;
+        enemy.w += score * 2;
+        enemy.h += score * 2;
+        enemySpeed *= 0.95 * score;
+        enemyWait = (enemy.w - 10) / 2;
+        die();
+    }
+};
+
 //Reads input from keyboard and moves player accordingly
 var update = function () {
     checkCollide();
-	addEventListener("keydown", function (e) {
-		keys[e.keyCode] = true;
-	}, false);
-	addEventListener("keyup", function (e) {
-		keys[e.keyCode] = false;
-	}, false);
-	
-	if (keys[37]) {
-		dx = -speed;
-	}
-	else if (keys[39]) {
-		dx = speed;
-	}
-	else {
-		dx = 0;
-	}
-	if (keys[38]) {
-		dy = -speed;
-	}
-	else if (keys[40]) {
-		dy = speed;
-	}
-	else {
-		dy = 0;
-	}
-	
+    addEventListener("keydown", function (e) {
+        keys[e.keyCode] = true;
+    }, false);
+    addEventListener("keyup", function (e) {
+        keys[e.keyCode] = false;
+    }, false);
+
+    if (keys[37]) {
+        dx = -speed;
+    }
+    else if (keys[39]) {
+        dx = speed;
+    }
+    else {
+        dx = 0;
+    }
+    if (keys[38]) {
+        dy = -speed;
+    }
+    else if (keys[40]) {
+        dy = speed;
+    }
+    else {
+        dy = 0;
+    }
+
     if (wait < 0) {
         me.x += dx;
         me.y += dy;
     }
     wait -= 10;
+
+    if (keys[65]) {
+        dxE = -enemySpeed;
+    }
+    else if (keys[68]) {
+        dxE = enemySpeed;
+    }
+    else {
+        dxE = 0;
+    }
+    if (keys[87]) {
+        dyE = -enemySpeed;
+    }
+    else if (keys[83]) {
+        dyE = enemySpeed;
+    }
+    else {
+        dyE = 0;
+    }
+
+    if (enemyWait < 0) {
+        enemy.x += dxE;
+        enemy.y += dyE;
+    }
+    enemyWait -= 10;
 }
 
 //Render Loop
@@ -162,6 +258,7 @@ var render = function () {
         pellets[i].draw(ctx);
     }
     me.draw(ctx);
+    enemy.draw(ctx);
     for (var i = 0; i < enemies.length; i++) {
         enemies[i].draw(ctx);
     }
