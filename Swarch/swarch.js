@@ -179,7 +179,7 @@ var eatPlayer = function (player) {
         score = score + enemyScore;
         me.w += enemyScore * 2;
         me.h += enemyScore * 2;
-        speed *= 0.95 * enemyScore;
+        speed *= 0.95;
         wait = (me.w - 10) / 2;
         dieEnemy();
     }
@@ -187,7 +187,7 @@ var eatPlayer = function (player) {
         enemyScore = enemyScore + score;
         enemy.w += score * 2;
         enemy.h += score * 2;
-        enemySpeed *= 0.95 * score;
+        enemySpeed *= 0.95;
         enemyWait = (enemy.w - 10) / 2;
         die();
     }
@@ -196,35 +196,6 @@ var eatPlayer = function (player) {
 //Reads input from keyboard and moves player accordingly
 var update = function () {
     checkCollide();
-<<<<<<< HEAD
-    addEventListener("keydown", function (e) {
-        keys[e.keyCode] = true;
-    }, false);
-    addEventListener("keyup", function (e) {
-        keys[e.keyCode] = false;
-    }, false);
-
-    if (keys[37]) {
-        dx = -speed;
-    }
-    else if (keys[39]) {
-        dx = speed;
-    }
-    else {
-        dx = 0;
-    }
-    if (keys[38]) {
-        dy = -speed;
-    }
-    else if (keys[40]) {
-        dy = speed;
-    }
-    else {
-        dy = 0;
-    }
-
-=======
-	
 	/*
 	$(document).keydown(function(e){
 		keys[e.keyCode] = true;
@@ -252,54 +223,48 @@ var update = function () {
 		dy = 0;
 	}
 	*/
-	
+
 	$(document).keydown(function(e){
-		if (e.keyCode == 37) {
-			dx = -speed;
-		}
-		else if (e.keyCode == 39) {
-			dx = speed;
-		}
-		else {
-			dx = 0;
-		}
-		if (e.keyCode == 38) {
-			dy = -speed;
-		}
-		else if (e.keyCode == 40) {
-			dy = speed;
-		}
-		else {
-			dy = 0;
-		}
+	    if (e.keyCode == 37) {  //left
+	        dx = -speed;
+	        dy = 0;
+	    }
+	    else if (e.keyCode == 39) { //right
+	        dx = speed;
+	        dy = 0;
+	    }
+	    else if (e.keyCode == 38) { //up
+	        dx = 0;
+	        dy = -speed;
+	    }
+	    else if (e.keyCode == 40) { //down
+	        dx = 0;
+	        dy = speed;
+	    }
+	    else if (e.keyCode == 65) { //left
+	        dxE = -speed;
+	        dyE = 0;
+	    }
+	    else if (e.keyCode == 68) { //right
+	        dxE = speed;
+	        dyE = 0;
+	    }
+	    else if (e.keyCode == 87) { //up
+	        dxE = 0;
+	        dyE = -speed;
+	    }
+	    else if (e.keyCode == 83) { //down
+	        dxE = 0;
+	        dyE = speed;
+	    }
+	    
 	});
-	
->>>>>>> 553f12db7964d4a85bc91d954218e39044d4e160
+    
     if (wait < 0) {
         me.x += dx;
         me.y += dy;
     }
     wait -= 10;
-
-    if (keys[65]) {
-        dxE = -enemySpeed;
-    }
-    else if (keys[68]) {
-        dxE = enemySpeed;
-    }
-    else {
-        dxE = 0;
-    }
-    if (keys[87]) {
-        dyE = -enemySpeed;
-    }
-    else if (keys[83]) {
-        dyE = enemySpeed;
-    }
-    else {
-        dyE = 0;
-    }
-
     if (enemyWait < 0) {
         enemy.x += dxE;
         enemy.y += dyE;
