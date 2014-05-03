@@ -35,9 +35,11 @@ var fps = {
 function start() {
 	var name = document.getElementById('name').value;
 	var pass = document.getElementById('pass').value;
+	var hashPass = CryptoJS.MD5(pass);
 	
 	document.write("Name: " + name + "<br>");
 	document.write("Pass: " + pass + "<br>");
+	document.write("MD5 Hash: " + hashPass + "<br>");
 	var logOut = document.createElement("BUTTON");
 	var logOutText = document.createTextNode("Log Out");
 	logOut.appendChild(logOutText);
