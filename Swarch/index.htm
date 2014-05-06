@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Swarch</title>
-<link rel="stylesheet" href="swarch.css">
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
+    <title>Swarch</title>
+    <link rel="stylesheet" href="swarch.css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
+    <script src="http://localhost:8000/socket.io/socket.io.js"></script>
 </head>
 <body>
-<center><h1>Swarch</h1></center>
-<center>Name</center>
-<center><input type="text" id="name"></center>
-<br>
-<center>Password</center>
-<center><input type="password" id="pass"></center>
-<center></center>
-<br>
-<center><button type="button" onclick="start()">Log In</button></center>
-<script src="swarch.js"></script>
+    <center><h1>Swarch</h1></center>
+    <!--<form name="login" action="" method="get">
+        <center>Name: <input type="text" name="name" /><br /></center>
+        <center>Pass: <input type="password" name="pass" /><br /></center>
+        <center><input type="button" name="submit" value="Submit" onclick="this.start()" /></center>
+    </form>-->
+    <center>Username: <input type="text" id="name"></center>
+    <br>
+    <center>Password: <input type="password" id="pass"></center>
+    <br>
+    <center><button type="button" onclick="start()">Log In</button></center>
+    <script src="swarch.js"></script>
 </body>
 </html>
