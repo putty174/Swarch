@@ -1,5 +1,6 @@
 ﻿var util = require("util");
 var io = require("socket.io");
+var db = require("mongojs").connect("userdb", ["users"]);
 Player = require("./Player").Player;
 
 var socket, players;
@@ -34,14 +35,26 @@ function onClientDisconnect() {
 function onLogin(data) {
     var name = data.username;
     var pass = data.password;
+	var temp = this;
     
     util.log("Name: " + name);
     util.log("Pass:" + pass);
-    
-    var verify = false;
-    if (name == "asdf")
-        verify = true;
-    this.emit("verify", { success: verify });
+	
+	db.users.count({user: name}, function(err, count) {
+		if (count == 0) {
+			db.users.save({user: name, password: pass});
+			util.log("Registered new user: " + name);
+			temp.emit("verify", { success: true });
+		}
+		else {
+			db.users.find({user: name}, function(err, users) {
+				if (pass == users[0].password)
+					temp.emit("verify", { success: true });
+				else
+					temp.emit("verify", { success: false });
+			});
+		}
+	});
 };
 
 function onNewPlayer(data) {
