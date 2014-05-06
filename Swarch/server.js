@@ -34,14 +34,14 @@ function onClientDisconnect() {
 function onLogin(data) {
     var name = data.username;
     var pass = data.password;
+    
     util.log("Name: " + name);
     util.log("Pass:" + pass);
-
+    
+    var verify = false;
     if (name == "asdf")
-        this.emit("verify", { success: true });
-    else
-        this.emit("verify", { success: false });
-    util.log("emit done");
+        verify = true;
+    this.emit("verify", { success: verify });
 };
 
 function onNewPlayer(data) {

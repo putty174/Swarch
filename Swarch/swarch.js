@@ -1,6 +1,7 @@
 var socket;
 
-var check = "hi";  //Login Information check, haven't decided if 1/0, true/false, w/e.
+var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
+var confirm = false;
 
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
@@ -79,8 +80,13 @@ function onSocketDisconnect() {
 };
 
 function onVerify(data) {
-    check = "testing";
     check = data.success;
+    if (check) {
+        check = "Welcome";
+        confirm = true;
+    }
+    else
+        document.location.reload();
 };
 
 function onNewPlayer(data) {
@@ -234,49 +240,51 @@ var update = function () {
 	}
 	*/
 
-    $(document).keydown(function (e) {
-        key = e.keyCode;
-	    if (e.keyCode == 37) {  //left
-	        me.dx = -me.speed;
-	        me.dy = 0;
-	    }
-	    else if (e.keyCode == 39) { //right
-	        me.dx = me.speed;
-	        me.dy = 0;
-	    }
-	    else if (e.keyCode == 38) { //up
-	        me.dx = 0;
-	        me.dy = -me.speed;
-	    }
-	    else if (e.keyCode == 40) { //down
-	        me.dx = 0;
-	        me.dy = me.speed;
-	    }
-	    else if (e.keyCode == 32) {
-	        me.dx = 0;
-	        me.dy = 0;
-	    }
-	    else if (e.keyCode == 65) { //left
-	        enemy.dx = -enemy.speed;
-	        enemy.dy = 0;
-	    }
-	    else if (e.keyCode == 68) { //right
-	        enemy.dx = enemy.speed;
-	        enemy.dy = 0;
-	    }
-	    else if (e.keyCode == 87) { //up
-	        enemy.dx = 0;
-	        enemy.dy = -enemy.speed;
-	    }
-	    else if (e.keyCode == 83) { //down
-	        enemy.dx = 0;
-	        enemy.dy = enemy.speed;
-	    }
-	    else if (e.keyCode == 88) { //stop
-	        enemy.dx = 0;
-	        enemy.dy = 0;
-	    }
-	});
+    if (confirm) {
+        $(document).keydown(function (e) {
+            key = e.keyCode;
+            if (e.keyCode == 37) {  //left
+                me.dx = -me.speed;
+                me.dy = 0;
+            }
+            else if (e.keyCode == 39) { //right
+                me.dx = me.speed;
+                me.dy = 0;
+            }
+            else if (e.keyCode == 38) { //up
+                me.dx = 0;
+                me.dy = -me.speed;
+            }
+            else if (e.keyCode == 40) { //down
+                me.dx = 0;
+                me.dy = me.speed;
+            }
+            else if (e.keyCode == 32) {
+                me.dx = 0;
+                me.dy = 0;
+            }
+            else if (e.keyCode == 65) { //left
+                enemy.dx = -enemy.speed;
+                enemy.dy = 0;
+            }
+            else if (e.keyCode == 68) { //right
+                enemy.dx = enemy.speed;
+                enemy.dy = 0;
+            }
+            else if (e.keyCode == 87) { //up
+                enemy.dx = 0;
+                enemy.dy = -enemy.speed;
+            }
+            else if (e.keyCode == 83) { //down
+                enemy.dx = 0;
+                enemy.dy = enemy.speed;
+            }
+            else if (e.keyCode == 88) { //stop
+                enemy.dx = 0;
+                enemy.dy = 0;
+            }
+        });
+    }
     
     if (me.wait < 0) {
         me.x += me.dx;
@@ -317,17 +325,17 @@ var main = function () {
 		render();
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.font = "10px Helvetica";
-		ctx.textAlign = "left";
-		ctx.textBaseline = "top";
-		ctx.fillText(me.score, me.x, me.y);
-        ctx.fillText(enemy.score, enemy.x, enemy.y);
+		ctx.textAlign = "center";
+		ctx.textBaseline = "middle";
+		ctx.fillText(me.score, me.x + (me.w / 2), me.y + (me.h / 2));
+		ctx.fillText(enemy.score, enemy.x + (enemy.w / 2), enemy.y + (enemy.h / 2));
 
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
-		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
+		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
 
 		ctx.font = "24px Helvetica";
-		ctx.textAlign = "left";
+		ctx.textAlign = "center";
 		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
 
 		//ctx.font = "24px Helvetica";
