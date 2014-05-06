@@ -1,6 +1,6 @@
 var socket;
 
-var check;  //Login Information check, haven't decided if 1/0, true/false, w/e.
+var check = "hi";  //Login Information check, haven't decided if 1/0, true/false, w/e.
 
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
@@ -56,10 +56,12 @@ function start() {
 	socket = io.connect("http://localhost", { port: 8000, transports: ["websocket"] });
 	socket.emit("login", { username: name, password: hashPass });
 
+	setEventHandlers();
+
 	setup();
 }
 
-var setEventHandler = function () {
+var setEventHandlers = function () {
     socket.on("connect", onSocketConnected);
     socket.on("disconnect", onSocketDisconnect);
     socket.on("verify", onVerify);
@@ -76,8 +78,9 @@ function onSocketDisconnect() {
     console.log("Disconnected from socket server");
 };
 
-function onVerify(data){
-    check = data;
+function onVerify(data) {
+    check = "testing";
+    check = data.success;
 };
 
 function onNewPlayer(data) {
@@ -322,6 +325,10 @@ var main = function () {
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 0);
+
+		ctx.font = "24px Helvetica";
+		ctx.textAlign = "left";
+		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
 
 		//ctx.font = "24px Helvetica";
 		//ctx.fillStyle = "#FFFFFF";

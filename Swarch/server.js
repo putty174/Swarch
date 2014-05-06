@@ -36,6 +36,12 @@ function onLogin(data) {
     var pass = data.password;
     util.log("Name: " + name);
     util.log("Pass:" + pass);
+
+    if (name == "asdf")
+        this.emit("verify", { success: true });
+    else
+        this.emit("verify", { success: false });
+    util.log("emit done");
 };
 
 function onNewPlayer(data) {
