@@ -44,14 +44,14 @@ function onLogin(data) {
 		if (count == 0) {
 			db.users.save({user: name, password: pass});
 			util.log("Registered new user: " + name);
-			temp.emit("verify", { success: true });
+			temp.emit("verify", { success: "new" });
 		}
 		else {
 			db.users.find({user: name}, function(err, users) {
 				if (pass == users[0].password)
-					temp.emit("verify", { success: true });
+					temp.emit("verify", { success: "good" });
 				else
-					temp.emit("verify", { success: false });
+					temp.emit("verify", { success: "bad" });
 			});
 		}
 	});

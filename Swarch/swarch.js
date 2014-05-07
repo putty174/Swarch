@@ -81,12 +81,18 @@ function onSocketDisconnect() {
 
 function onVerify(data) {
     check = data.success;
-    if (check) {
-        check = "Welcome";
+    if (check == "good") {
+        check = "Welcome back";
         confirm = true;
     }
-    else
+    else if (check == "new") {
+        check = "Hello new user";
+        confirm = true;
+    }
+    else {
+        alert("Bad Username/Password.\nPlease try again.");
         document.location.reload();
+    }
 };
 
 function onNewPlayer(data) {
