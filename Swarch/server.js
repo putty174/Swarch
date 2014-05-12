@@ -1,13 +1,26 @@
 ﻿var util = require("util");
 var io = require("socket.io");
+var express = require("express");
 var db = require("mongojs").connect("userdb", ["users"]);
 Player = require("./Player").Player;
 
-var socket, players;
-function init() {
-    players = [];
+var app = express();
+// Sets default directory for files
+// Ex. __dirname + '/public' would set the public folder as the top folder
+app.use(express.static(__dirname));
 
-    socket = io.listen(8000);
+// Send __dirname/index.htm to client
+app.get('/', function (req, res) {
+	res.sendfile('index.htm');
+});
+
+// Start listening on socket
+var server = app.listen(8000);
+var socket = io.listen(server);
+var players = [];
+
+function init() {
+
     socket.configure(function () {
         socket.set("transports", ["websocket"]);
         socket.set("log level", 2);
