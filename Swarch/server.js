@@ -38,7 +38,7 @@ function onSocketConnection(client){
     client.on("disconnect", onClientDisconnect);
     client.on("login", onLogin);
     client.on("new player", onNewPlayer);
-    client.on("move", onMovePlayer);
+    client.on("move", onMove);
 };
 
 function onClientDisconnect() {
@@ -71,7 +71,7 @@ function onLogin(data) {
 };
 
 function onNewPlayer(data) {
-    var newPlayer = new Player(data.x, data.y);
+    var newPlayer = new Player(data.fill);
     newPlayer.id = this.id;
 
     this.broadcast.emit("new player", { id: newplayer.id, x: newPlayer.getX(), y: newPlayer.getY() });
@@ -84,7 +84,7 @@ function onNewPlayer(data) {
     players.push(newPlayer);
 };
 
-function onMovePlayer(data) {
+function onMove(data) {
     var i, existingPlayer;
     for (i = 0; i < players.length; i++) {
         existingPlayer = player[i];

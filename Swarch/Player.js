@@ -1,8 +1,14 @@
-﻿var Player = function (startX, startY) {
+﻿var Player = function (startFill) {
     var id;
-    var x = startx;
-    var y = starty;
+    var x;
+    var y;
+    var w;
+    var h;
+    var fill = startFill;
+    var speed;
+    var score;
     var direction;
+    var wait;
 
     var getX = function () {
         return x;
@@ -20,6 +26,46 @@
         y = newY;
     };
 
+    var getW = function () {
+        return w;
+    }
+
+    var setW = function (newW) {
+        w = newW;
+    }
+
+    var getH = function () {
+        return h;
+    }
+
+    var setH = function (newH) {
+        h = newH;
+    }
+
+    var getFill = function () {
+        return fill;
+    }
+
+    var setFill = function (newFill) {
+        fill = newFill;
+    }
+
+    var getSpeed = function () {
+        return speed;
+    }
+
+    var setSpeed = function (newSpeed) {
+        speed = newSpeed;
+    }
+
+    var getScore = function () {
+        return score;
+    }
+
+    var setScore = function (newScore) {
+        score = newScore;
+    }
+
     var getDirection = function () {
         return direction;
     };
@@ -28,14 +74,41 @@
         direction = newD;
     };
 
+    var getWait = function () {
+        return wait;
+    }
+
+    var setWait = function (newWait) {
+        wait = newWait;
+    }
+
     return {
         getX: getX,
         setX: setX,
         getY: getY,
         setY: setY,
+        getW: getW,
+        setW: setW,
+        getH: getH,
+        setH: setH,
+        getFill: getFill,
+        setFill: setFill,
+        getSpeed: getSpeed,
+        setSpeed: setSpeed,
+        getScore: getScore,
+        setScore: setScore,
         getDirection: getDirection,
         setDirection: setDirection,
+        getWait: getWait,
+        setWait: setWait,
         id: id
     }
 };
 exports.Player = Player;
+
+var w;
+var h;
+var fill = startFill;
+var speed;
+var score;
+var wait;

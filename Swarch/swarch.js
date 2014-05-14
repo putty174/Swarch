@@ -67,7 +67,7 @@ var setEventHandlers = function () {
     socket.on("disconnect", onSocketDisconnect);
     socket.on("verify", onVerify);
     socket.on("new player", onNewPlayer);
-    socket.on("move player", onMovePlayer);
+    socket.on("move", onMovePlayer);
     socket.on("remove player", onRemovePlayer);
 };
 
@@ -93,22 +93,43 @@ function onVerify(data) {
         alert("Bad Username/Password.\nPlease try again.");
         document.location.reload();
     }
+    if (confirm)
+        socket.emit("new player", { fill: "#FF0000" });
 };
 
 function onNewPlayer(data) {
-    console.log("New player connected: " + data.id);
+    console.log("New player created: " + data.id);
+    var newPlayer = new pellet(data.x, data.y, 10, 10, "#FF0000", 2, 0, 0, 0, 0, data.id);
+    enemies.push(newPlayer);
 };
 
-function onMovePlayer(data) {
+function onMove(data) {
+    var player = findPlayer(data.id);
+    if (!player)
+        console.log("Player not found: " + data.id);
+    else
+        player.direction = data.direction;
 };
 
 function onRemovePlayer(data){
 };
 
+function findPlayer(id) {
+    var i, player;
+    player = false;
+    for (i = 0; i < enemies.length; i++) {
+        if (enemies[i].id == id) {
+            player = enemies[i];
+            return player;
+        }
+    }
+    return player;
+}
+
 //Setup game by placing objects
 var setup = function () {
     me = new pellet(width / 3, height / 3, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
-    enemy = new pellet(width * 2 / 3, height * 2 / 3, 10, 10, "#FF0000", 2, 0, 0, 0, 0);
+    enemy = new pellet(width * 2 / 3, height * 2 / 3, 10, 10, "#FF0000", 2, 0, 0, 0, 0, 1);
 
     addPellet(new pellet(width * 0.25, height * 0.25, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.25, height * 0.75, 10, 10, "#AAAAAA"));
@@ -122,17 +143,18 @@ var addPellet = function (pellet) {
 }
 
 //Pellet class
-function pellet(x, y, w, h, fill, s, sc, mx, my, w) {
+function pellet(x, y, w, h, fill, speed, score, movex, movey, wait, idnum) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
     this.fill = fill || "#AAAAAA";
-    this.speed = s || 2;
-    this.score = sc || 0;
-    this.dx = mx || 0;
-    this.dy = my || 0;
-    this.wait = w || 0;
+    this.speed = speed || 2;
+    this.score = score || 0;
+    this.dx = movex || 0;
+    this.dy = movey || 0;
+    this.wait = wait || 0;
+    this.id = idnum || 0;
 }
 
 //Pellet helper function to draw pellet
