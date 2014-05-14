@@ -291,7 +291,12 @@ var update = function () {
             }
         });
     }
-    
+
+    if (e.keyCode > 36 && e.keyCode < 41) {
+        socket.emit("move", { direction: e.keyCode });
+        console.log("Send Key Code: " + e.keyCode);
+    };
+
     if (me.wait < 0) {
         me.x += me.dx;
         me.y += me.dy;

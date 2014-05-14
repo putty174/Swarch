@@ -1,29 +1,40 @@
 ﻿var Player = function (startX, startY) {
+    var id;
     var x = startx;
     var y = starty;
-    id;
+    var direction;
 
     var getX = function () {
         return x;
-    };
-
-    var getY = function () {
-        return y;
     };
 
     var setX = function (newX) {
         x = newX;
     };
 
+    var getY = function () {
+        return y;
+    };
+
     var setY = function (newY) {
         y = newY;
     };
 
+    var getDirection = function () {
+        return direction;
+    };
+
+    var setDirection = function (newD) {
+        direction = newD;
+    };
+
     return {
         getX: getX,
-        getY: getY,
         setX: setX,
+        getY: getY,
         setY: setY,
+        getDirection: getDirection,
+        setDirection: setDirection,
         id: id
     }
 };

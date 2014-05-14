@@ -38,7 +38,7 @@ function onSocketConnection(client){
     client.on("disconnect", onClientDisconnect);
     client.on("login", onLogin);
     client.on("new player", onNewPlayer);
-    client.on("move player", onMovePlayer);
+    client.on("move", onMovePlayer);
 };
 
 function onClientDisconnect() {
@@ -78,13 +78,20 @@ function onNewPlayer(data) {
 
     var i, existingPlayer;
     for (i = 0; i < players.length; i++) {
-        existingPlayer = players[0];
+        existingPlayer = players[i];
         this.emit("new player", { id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY() });
     };
     players.push(newPlayer);
 };
 
 function onMovePlayer(data) {
+    var i, existingPlayer;
+    for (i = 0; i < players.length; i++) {
+        existingPlayer = player[i];
+        this.emit("move", { id: existingPlayer.id, direction: data.direction });
+        if (existingPlayer.id == this.id)
+            existingPlayer.direction = data.direction;
+    };
 };
 
 init();
