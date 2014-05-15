@@ -67,6 +67,7 @@ var setEventHandlers = function () {
     socket.on("disconnect", onSocketDisconnect);
     socket.on("verify", onVerify);
     socket.on("new player", onNewPlayer);
+    socket.on("new pellet", onNewPellet);
     socket.on("move", onMovePlayer);
     socket.on("remove player", onRemovePlayer);
 };
@@ -103,12 +104,20 @@ function onNewPlayer(data) {
     enemies.push(newPlayer);
 };
 
+function onNewPellet(data) {
+    console.log("New Pellet Created: " + data.x + ", " + data.y);
+    var newPellet = new pellet(data.x, data.y, 10, 10, "#AAAAAA");
+    pellets.push(newPellet);
+};
+
 function onMove(data) {
     var player = findPlayer(data.id);
     if (!player)
         console.log("Player not found: " + data.id);
-    else
-        player.direction = data.direction;
+    else {
+        player.dx *= data.dx;
+        player.dy *= data.dy;
+    }
 };
 
 function onRemovePlayer(data){
@@ -161,6 +170,11 @@ function pellet(x, y, w, h, fill, speed, score, movex, movey, wait, idnum) {
 pellet.prototype.draw = function (ctx) {
     ctx.fillStyle = this.fill;
     ctx.fillRect(this.x, this.y, this.w, this.h);
+    ctx.fillStyle = "rgb(0, 0, 0)";
+    ctx.font = "10px Helvetica";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(this.score, this.x + (this.w / 2), this.y + (this.h / 2));
 }
 
 pellet.prototype.die = function() {
@@ -314,7 +328,7 @@ var update = function () {
         });
     }
 
-    if (e.keyCode > 36 && e.keyCode < 41) {
+    if (e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32) {
         socket.emit("move", { direction: e.keyCode });
         console.log("Send Key Code: " + e.keyCode);
     };
@@ -357,11 +371,6 @@ var main = function () {
 		update();
 		render();
 		ctx.fillStyle = "rgb(0, 0, 0)";
-		ctx.font = "10px Helvetica";
-		ctx.textAlign = "center";
-		ctx.textBaseline = "middle";
-		ctx.fillText(me.score, me.x + (me.w / 2), me.y + (me.h / 2));
-		ctx.fillText(enemy.score, enemy.x + (enemy.w / 2), enemy.y + (enemy.h / 2));
 
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
@@ -370,11 +379,6 @@ var main = function () {
 		ctx.font = "24px Helvetica";
 		ctx.textAlign = "center";
 		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
-
-		//ctx.font = "24px Helvetica";
-		//ctx.fillStyle = "#FFFFFF";
-		//ctx.textAlign = "left";
-		//ctx.fillText(me.speed , 20, 20);
 	}
 }
 

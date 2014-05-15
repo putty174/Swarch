@@ -85,10 +85,31 @@ function onNewPlayer(data) {
 };
 
 function onMove(data) {
+    var dx, dy;
+    if (data.direction == 37) {  //left
+        dx = -1;
+        dy = 0;
+    }
+    else if (data.direction == 39) { //right
+        dx = 1;
+        dy = 0;
+    }
+    else if (data.direction == 38) { //up
+        dx = 0;
+        dy = -1;
+    }
+    else if (data.direction == 40) { //down
+        dx = 0;
+        dy = 1;
+    }
+    else if (data.direction == 32) {
+        dx = 0;
+        dy = 0;
+    }
     var i, existingPlayer;
     for (i = 0; i < players.length; i++) {
         existingPlayer = player[i];
-        this.emit("move", { id: existingPlayer.id, direction: data.direction });
+        this.emit("move", { id: existingPlayer.id, dx: data.direction });
         if (existingPlayer.id == this.id)
             existingPlayer.direction = data.direction;
     };
