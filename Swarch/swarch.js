@@ -302,7 +302,7 @@ var update = function () {
                 me.dx = 0;
                 me.dy = 0;
             }
-            if (key != lastKey && e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32) {
+            if (key != lastKey && (e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32)) {
                 socket.emit("move", { direction: e.keyCode });
                 console.log("Send Key Code: " + e.keyCode);
             }
