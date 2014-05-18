@@ -58,7 +58,6 @@ function start() {
 	socket.emit("login", { username: name, password: hashPass });
 
 	setEventHandlers();
-
 	setup();
 }
 
@@ -68,12 +67,13 @@ var setEventHandlers = function () {
     socket.on("verify", onVerify);
     socket.on("new player", onNewPlayer);
     socket.on("new pellet", onNewPellet);
-    socket.on("move", onMovePlayer);
+    socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
 };
 
 function onSocketConnected() {
     console.log("Connected to socket server");
+    socket.emit("new player", { x:me.x, y:me.y, fill: me.fill });
 };
 
 function onSocketDisconnect() {
@@ -100,6 +100,7 @@ function onVerify(data) {
 
 function onNewPlayer(data) {
     console.log("New player created: " + data.id);
+    document.write("New player created: " + data.id);
     var newPlayer = new pellet(data.x, data.y, 10, 10, "#FF0000", 2, 0, 0, 0, 0, data.id);
     enemies.push(newPlayer);
 };
@@ -137,8 +138,7 @@ function findPlayer(id) {
 
 //Setup game by placing objects
 var setup = function () {
-    me = new pellet(width / 3, height / 3, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
-    enemy = new pellet(width * 2 / 3, height * 2 / 3, 10, 10, "#FF0000", 2, 0, 0, 0, 0, 1);
+    me = new pellet(width / 2, height / 2, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
 
     addPellet(new pellet(width * 0.25, height * 0.25, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.25, height * 0.75, 10, 10, "#AAAAAA"));
@@ -221,32 +221,27 @@ var checkCollide = function () {
     if (me.x < 0 || (me.x + me.w) > width || me.y < 0 || (me.y + me.h) > height) {
         me.die();
     }
-    if (enemy.x < 0 || (enemy.x + enemy.w) > width || enemy.y < 0 || (enemy.y + enemy.h) > height) {
-        enemy.die();
-    }
-
+    
     //Check collision between players
-    if (me.x <= (enemy.x + enemy.w) && enemy.x <= (me.x + me.w) && me.y <= (enemy.y + enemy.h) && enemy.y <= (me.y + me.h)) {
-    	if (me.score > enemy.score) {
-			me.eatPlayer(enemy);
-    	}
-		else if (me.score < enemy.score) {
-			enemy.eatPlayer(me);
-		}
-		else {
-			me.die();
-			enemy.die();
-		}
+    var i;
+    for (i = 0; i < enemies.length; i++) {
+        if (me.x <= (enemies[i].x + enemies[i].w) && enemies[i].x <= (me.x + me.w) && me.y <= (enemies[i].y + enemies[i].h) && enemies[i].y <= (me.y + me.h)) {
+            if (me.score > enemies[i].score) {
+                me.eatPlayer(enemies[i]);
+            }
+            else if (me.score < enemies[i].score) {
+                enemies[i].eatPlayer(me);
+            }
+            else {
+                me.die();
+                enemies[i].die();
+            }
+        }
     }
-
     //Collision with pellets
     for (var i = 0; i < pellets.length; i++) {
         if (me.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (me.x + me.w) && me.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (me.y + me.h)) {
             me.eat(i);
-        }
-
-        if (enemy.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (enemy.x + enemy.w) && enemy.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (enemy.y + enemy.h)) {
-            enemy.eat(i);
         }
     }
 }
@@ -254,6 +249,7 @@ var checkCollide = function () {
 //Reads input from keyboard and moves player accordingly
 var update = function () {
     checkCollide();
+    
 	/*
 	$(document).keydown(function(e){
 		keys[e.keyCode] = true;
@@ -305,44 +301,18 @@ var update = function () {
                 me.dx = 0;
                 me.dy = 0;
             }
-            else if (e.keyCode == 65) { //left
-                enemy.dx = -enemy.speed;
-                enemy.dy = 0;
-            }
-            else if (e.keyCode == 68) { //right
-                enemy.dx = enemy.speed;
-                enemy.dy = 0;
-            }
-            else if (e.keyCode == 87) { //up
-                enemy.dx = 0;
-                enemy.dy = -enemy.speed;
-            }
-            else if (e.keyCode == 83) { //down
-                enemy.dx = 0;
-                enemy.dy = enemy.speed;
-            }
-            else if (e.keyCode == 88) { //stop
-                enemy.dx = 0;
-                enemy.dy = 0;
+            if (e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32) {
+                socket.emit("move", { direction: e.keyCode });
+                console.log("Send Key Code: " + e.keyCode);
             }
         });
     }
-
-    if (e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32) {
-        socket.emit("move", { direction: e.keyCode });
-        console.log("Send Key Code: " + e.keyCode);
-    };
 
     if (me.wait < 0) {
         me.x += me.dx;
         me.y += me.dy;
     }
     me.wait -= 10;
-    if (enemy.wait < 0) {
-        enemy.x += enemy.dx;
-        enemy.y += enemy.dy;
-    }
-    enemy.wait -= 10;
 }
 
 //Render Loop
@@ -351,7 +321,6 @@ var render = function () {
         pellets[i].draw(ctx);
     }
     me.draw(ctx);
-    enemy.draw(ctx);
     for (var i = 0; i < enemies.length; i++) {
         enemies[i].draw(ctx);
     }
@@ -367,8 +336,9 @@ var clean = function () {
 var main = function () {
 	if (me !== undefined) {
 		clean();
-
+		
 		update();
+		
 		render();
 		ctx.fillStyle = "rgb(0, 0, 0)";
 

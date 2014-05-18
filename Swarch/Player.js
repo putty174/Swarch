@@ -1,14 +1,22 @@
-﻿var Player = function (startFill) {
+﻿var Player = function () {
     var id;
     var x;
     var y;
     var w;
     var h;
-    var fill = startFill;
+    var fill;
     var speed;
     var score;
     var direction;
     var wait;
+
+    var getID = function () {
+        return id;
+    };
+
+    var setID = function (newID) {
+        id = newID;
+    };
 
     var getX = function () {
         return x;
@@ -83,6 +91,8 @@
     }
 
     return {
+        getID: getID,
+        setID: setID,
         getX: getX,
         setX: setX,
         getY: getY,
@@ -105,10 +115,3 @@
     }
 };
 exports.Player = Player;
-
-var w;
-var h;
-var fill = startFill;
-var speed;
-var score;
-var wait;

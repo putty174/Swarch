@@ -4,6 +4,9 @@ var express = require("express");
 var db = require("mongojs").connect("userdb", ["users"]);
 Player = require("./Player").Player;
 
+var width = 600;
+var height = 400;
+
 var app = express();
 // Sets default directory for files
 // Ex. __dirname + '/public' would set the public folder as the top folder
@@ -38,6 +41,7 @@ function onSocketConnection(client){
     client.on("disconnect", onClientDisconnect);
     client.on("login", onLogin);
     client.on("new player", onNewPlayer);
+    client.on("eat", onEat);
     client.on("move", onMove);
 };
 
@@ -71,20 +75,43 @@ function onLogin(data) {
 };
 
 function onNewPlayer(data) {
-    var newPlayer = new Player(data.fill);
-    newPlayer.id = this.id;
+    var i, exists;
+    exists = false;
+    for(i = 0; i < players.length; i++){
+        if (players[i].id == data.id) {
+            exists = true;
+            util.log("Player already exists");
+        }
+    }
 
-    this.broadcast.emit("new player", { id: newplayer.id, x: newPlayer.getX(), y: newPlayer.getY() });
+    if (!exists) {
+        util.log("Creating new player");
+        var newPlayer = new Player();
+        newPlayer.id = this.id;
+        newPlayer.x = Math.min(width * Math.random(), width - 10);
+        newPlayer.y = Math.min(height * Math.random(), height - 10);
 
-    var i, existingPlayer;
-    for (i = 0; i < players.length; i++) {
-        existingPlayer = players[i];
-        this.emit("new player", { id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY() });
-    };
-    players.push(newPlayer);
+        this.broadcast.emit("new player", { id: newPlayer.id, x: newPlayer.getX(), y: newPlayer.getY(), fill: newPlayer.getFill() });
+        var i, existingPlayer;
+        for (i = 0; i < players.length; i++) {
+            existingPlayer = players[i];
+            this.emit("new player", { id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY() });
+        };
+        players.push(newPlayer);
+    }
 };
 
+function onEat(data) {
+    util.log("Eat");
+    checkCollision(data.id, data.target);
+}
+
+function checkCollision(player, target) {
+    util.log("Collide");
+}
+
 function onMove(data) {
+    util.log("Move: " + data.id + " >>> " + data.direction);
     var dx, dy;
     if (data.direction == 37) {  //left
         dx = -1;
@@ -108,7 +135,7 @@ function onMove(data) {
     }
     var i, existingPlayer;
     for (i = 0; i < players.length; i++) {
-        existingPlayer = player[i];
+        existingPlayer = players[i];
         this.emit("move", { id: existingPlayer.id, dx: data.direction });
         if (existingPlayer.id == this.id)
             existingPlayer.direction = data.direction;
