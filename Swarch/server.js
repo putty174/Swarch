@@ -74,7 +74,9 @@ function onLogin(data) {
 	});
 };
 
+//Creates and adds new players to list of connected players
 function onNewPlayer(data) {
+    //Checks if this id sent a new player message before to prevent duplicates
     var i, exists;
     exists = false;
     for(i = 0; i < players.length; i++){
@@ -84,6 +86,7 @@ function onNewPlayer(data) {
         }
     }
 
+    //If truely new player, create new entry and send other player info
     if (!exists) {
         util.log("Creating new player");
         var newPlayer = new Player();
@@ -111,7 +114,7 @@ function checkCollision(player, target) {
 }
 
 function onMove(data) {
-    util.log("Move: " + data.id + " >>> " + data.direction);
+    util.log("Move: " + this.id + " >>> " + data.direction);
     var dx, dy;
     if (data.direction == 37) {  //left
         dx = -1;

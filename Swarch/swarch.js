@@ -6,6 +6,7 @@ var confirm = false;
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
 
+var lastKey // Previously pressed key
 var key; // Currently pressed key
 
 var me; //Player
@@ -301,10 +302,11 @@ var update = function () {
                 me.dx = 0;
                 me.dy = 0;
             }
-            if (e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32) {
+            if (key != lastKey && e.keyCode > 36 && e.keyCode < 41 || e.keyCode == 32) {
                 socket.emit("move", { direction: e.keyCode });
                 console.log("Send Key Code: " + e.keyCode);
             }
+            lastKey = key;
         });
     }
 
