@@ -78,7 +78,7 @@ function onNewPlayer(data) {
     var i, exists;
     exists = false;
     for(i = 0; i < players.length; i++){
-        if (players[i].id == data.id) {
+        if (players[i].id == this.id) {
             exists = true;
             util.log("Player already exists");
         }
