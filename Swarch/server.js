@@ -47,6 +47,11 @@ function onSocketConnection(client){
 
 function onClientDisconnect() {
     util.log("Player has disconnected:" + this.id);
+    var i;
+    for (i = 0; i < players.length; i++) {
+        if (players[i].id == this.id)
+            players.splice(i, 1);
+    }
 };
 
 function onLogin(data) {
