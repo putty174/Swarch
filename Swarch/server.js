@@ -32,12 +32,11 @@ function init() {
 };
 
 //Pellet class
-function pellet(x, y, w, h, fill, speed, score, movex, movey, wait, idnum) {
+function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
-    this.fill = fill || "#AAAAAA";
     this.speed = speed || 2;
     this.score = score || 0;
     this.dx = movex || 0;
@@ -96,9 +95,7 @@ function onLogin(data) {
 function onNewPlayer(data) {
     var playerid = this.username;
 	util.log("New Player: " + playerid);
-	players[playerid] = new pellet();
-	players[playerid].x = Math.min(width * Math.random(), width - 10);
-    players[playerid].y = Math.min(height * Math.random(), height - 10);
+	players[playerid] = new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 2, 0);
 	this.emit("setup", { id: playerid, x: players[playerid].x, y: players[playerid].y });
 
     this.broadcast.emit("new player", { id: playerid, x: players[playerid].x, y: players[playerid].y });
@@ -159,6 +156,6 @@ var update = function() {
 	}
 };
 
+init();
 //Set game loop and framerate
 setInterval(update, 1000 / 60);
-init();
