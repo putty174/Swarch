@@ -4,6 +4,9 @@ var express = require("express");
 var db = require("mongojs").connect("userdb", ["users"]);
 Player = require("./Player").Player;
 
+var width = 600;
+var height = 400;
+
 var app = express();
 // Sets default directory for files
 // Ex. __dirname + '/public' would set the public folder as the top folder
@@ -38,7 +41,8 @@ function onSocketConnection(client){
     client.on("disconnect", onClientDisconnect);
     client.on("login", onLogin);
     client.on("new player", onNewPlayer);
-    client.on("move", onMovePlayer);
+    client.on("eat", onEat);
+    client.on("move", onMove);
 };
 
 function onClientDisconnect() {
@@ -74,11 +78,14 @@ function onLogin(data) {
 	});
 };
 
+//Creates and adds new players to list of connected players
 function onNewPlayer(data) {
     var playerid = this.username;
-	this.emit("setup", {id: playerid});
 	util.log("New Player: " + playerid);
-	players[playerid] = new Player(data.x, data.y);
+	players[playerid] = new Player();
+	players[playerid].setX(Math.min(width * Math.random(), width - 10));
+    players[playerid].setY(Math.min(height * Math.random(), height - 10));
+	this.emit("setup", { id: playerid, x: players[playerid].getX(), y: players[playerid].getY() });
 
     this.broadcast.emit("new player", { id: playerid, x: players[playerid].getX(), y: players[playerid].getY() });
 
@@ -88,9 +95,26 @@ function onNewPlayer(data) {
 	}
 };
 
-function onMovePlayer(data) {
+function onMove(data) {
 	players[data.id].setDirection(data.direction);
-    this.broadcast.emit("move player", { id: data.id, direction: data.direction });
+    this.broadcast.emit("move", { id: data.id, direction: data.direction });
 };
 
+function onEat(data) {
+    util.log("Eat");
+    checkCollision(data.id, data.target);
+};
+
+function checkCollision(player, target) {
+    util.log("Collide");
+};
+
+var main = function() {
+	for (var id in players) {
+		players[id].update();
+	}
+};
+
+//Set game loop and framerate
+setInterval(main, 1000 / 60);
 init();

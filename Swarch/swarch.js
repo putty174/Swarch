@@ -59,7 +59,6 @@ function start() {
 	socket.emit("login", { username: name, password: hashPass });
 
 	setEventHandlers();
-
 	setup();
 }
 
@@ -69,7 +68,8 @@ var setEventHandlers = function () {
     socket.on("verify", onVerify);
 	socket.on("setup", onSetup);
     socket.on("new player", onNewPlayer);
-    socket.on("move player", onMovePlayer);
+    socket.on("new pellet", onNewPellet);
+    socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
 };
 
@@ -99,6 +99,7 @@ function onVerify(data) {
 
 // Get player id and current state of game
 function onSetup(data) {
+    me = new pellet(data.x, data.y, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
 	me.id = data.id;
 	console.log("ID: " + me.id);
 }
@@ -110,30 +111,36 @@ function onNewPlayer(data) {
 	}
 };
 
-function onMovePlayer(data) {
+function onMove(data) {
 	if (data.id != me.id) {
 		dir = data.direction;
 		if (dir == "left") {  //left
-                enemies[data.id].dx = -enemies[data.id].speed;
-                enemies[data.id].dy = 0;
-            }
-            else if (dir == "right") { //right
-                enemies[data.id].dx = enemies[data.id].speed;
-                enemies[data.id].dy = 0;
-            }
-            else if (dir == "up") { //up
-                enemies[data.id].dx = 0;
-                enemies[data.id].dy = -enemies[data.id].speed;
-            }
-            else if (dir == "down") { //down
-                enemies[data.id].dx = 0;
-                enemies[data.id].dy = enemies[data.id].speed;
-            }
-            else if (dir == "stop") { //stop
-                enemies[data.id].dx = 0;
-                enemies[data.id].dy = 0;
-            }
+			enemies[data.id].dx = -enemies[data.id].speed;
+			enemies[data.id].dy = 0;
+		}
+		else if (dir == "right") { //right
+			enemies[data.id].dx = enemies[data.id].speed;
+			enemies[data.id].dy = 0;
+		}
+		else if (dir == "up") { //up
+			enemies[data.id].dx = 0;
+			enemies[data.id].dy = -enemies[data.id].speed;
+		}
+		else if (dir == "down") { //down
+			enemies[data.id].dx = 0;
+			enemies[data.id].dy = enemies[data.id].speed;
+		}
+		else if (dir == "stop") { //stop
+			enemies[data.id].dx = 0;
+			enemies[data.id].dy = 0;
+		}
 	}
+};
+
+function onNewPellet(data) {
+    console.log("New Pellet Created: " + data.x + ", " + data.y);
+    var newPellet = new pellet(data.x, data.y, 10, 10, "#AAAAAA");
+    pellets.push(newPellet);
 };
 
 function onRemovePlayer(data){
@@ -141,10 +148,21 @@ function onRemovePlayer(data){
 	delete enemies[data.id];
 };
 
+function findPlayer(id) {
+    var i, player;
+    player = false;
+    for (i = 0; i < enemies.length; i++) {
+        if (enemies[i].id == id) {
+            player = enemies[i];
+            return player;
+        }
+    }
+    return player;
+}
+
 //Setup game by placing objects
 var setup = function () {
-    me = new pellet(width / 3, height / 3, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
-	socket.emit("new player", { x: me.x, y: me.y });
+	socket.emit("new player");
 
     addPellet(new pellet(width * 0.25, height * 0.25, 10, 10, "#AAAAAA"));
     addPellet(new pellet(width * 0.25, height * 0.75, 10, 10, "#AAAAAA"));
@@ -158,17 +176,17 @@ var addPellet = function (pellet) {
 }
 
 //Pellet class
-function pellet(x, y, w, h, fill, s, sc, dx, dy, w) {
+function pellet(x, y, w, h, fill, speed, score, movex, movey, wait) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
     this.fill = fill || "#AAAAAA";
-    this.speed = s || 2;
-    this.score = sc || 0;
-    this.dx = dx || 0;
-    this.dy = dy || 0;
-    this.wait = w || 0;
+    this.speed = speed || 2;
+    this.score = score || 0;
+    this.dx = movex || 0;
+    this.dy = movey || 0;
+    this.wait = wait || 0;
 }
 
 //Pellet helper function to draw pellet
@@ -225,19 +243,22 @@ var checkCollide = function () {
     if (enemy.x < 0 || (enemy.x + enemy.w) > width || enemy.y < 0 || (enemy.y + enemy.h) > height) {
         enemy.die();
     }
-
+	
     //Check collision between players
-    if (me.x <= (enemy.x + enemy.w) && enemy.x <= (me.x + me.w) && me.y <= (enemy.y + enemy.h) && enemy.y <= (me.y + me.h)) {
-    	if (me.score > enemy.score) {
-			me.eatPlayer(enemy);
-    	}
-		else if (me.score < enemy.score) {
-			enemy.eatPlayer(me);
-		}
-		else {
-			me.die();
-			enemy.die();
-		}
+    var i;
+    for (i = 0; i < enemies.length; i++) {
+        if (me.x <= (enemies[i].x + enemies[i].w) && enemies[i].x <= (me.x + me.w) && me.y <= (enemies[i].y + enemies[i].h) && enemies[i].y <= (me.y + me.h)) {
+            if (me.score > enemies[i].score) {
+                me.eatPlayer(enemies[i]);
+            }
+            else if (me.score < enemies[i].score) {
+                enemies[i].eatPlayer(me);
+            }
+            else {
+                me.die();
+                enemies[i].die();
+            }
+        }
     }
 	*/
 
@@ -333,8 +354,9 @@ var clean = function () {
 var main = function () {
 	if (me !== undefined) {
 		clean();
-
+		
 		update();
+		
 		render();
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.font = "10px Helvetica";
@@ -352,11 +374,6 @@ var main = function () {
 		ctx.font = "24px Helvetica";
 		ctx.textAlign = "center";
 		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
-
-		//ctx.font = "24px Helvetica";
-		//ctx.fillStyle = "#FFFFFF";
-		//ctx.textAlign = "left";
-		//ctx.fillText(me.speed , 20, 20);
 	}
 }
 
