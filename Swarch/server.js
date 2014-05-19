@@ -20,6 +20,7 @@ app.get('/', function (req, res) {
 var server = app.listen(8000);
 var socket = io.listen(server);
 var players = {};
+var pellets = [];
 
 function init() {
 
@@ -27,7 +28,10 @@ function init() {
         socket.set("transports", ["websocket"]);
         socket.set("log level", 2);
     });
-
+    pellets.push(new pellet(width * 0.25, height * 0.25, 10, 10));
+    pellets.push(new pellet(width * 0.25, height * 0.75, 10, 10));
+    pellets.push(new pellet(width * 0.75, height * 0.25, 10, 10));
+    pellets.push(new pellet(width * 0.75, height * 0.75, 10, 10));
     setEventHandlers();
 };
 
@@ -97,6 +101,11 @@ function onNewPlayer(data) {
 	util.log("New Player: " + playerid);
 	players[playerid] = new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 2, 0);
 	this.emit("setup", { id: playerid, x: players[playerid].x, y: players[playerid].y });
+    
+	var i;
+	for (i = 0; i < pellets.length; i++) {
+	    this.emit("new pellet", { x: pellets[i].x, y: pellets[i].y });
+	}
 
     this.broadcast.emit("new player", { id: playerid, x: players[playerid].x, y: players[playerid].y });
 
@@ -104,6 +113,9 @@ function onNewPlayer(data) {
 		util.log("Sending data for " + id);
 		this.emit("new player", { id: id, x: players[id].x, y: players[id].y });
 	}
+    
+	
+
 };
 
 function onMove(data) {

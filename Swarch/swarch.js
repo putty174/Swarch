@@ -161,11 +161,6 @@ function onRemovePlayer(data){
 //Setup game by placing objects
 var setup = function () {
 	socket.emit("new player");
-
-    addPellet(new pellet(width * 0.25, height * 0.25, 10, 10, "#AAAAAA"));
-    addPellet(new pellet(width * 0.25, height * 0.75, 10, 10, "#AAAAAA"));
-    addPellet(new pellet(width * 0.75, height * 0.25, 10, 10, "#AAAAAA"));
-    addPellet(new pellet(width * 0.75, height * 0.75, 10, 10, "#AAAAAA"));
 }
 
 //Add pellets to list of pellets
