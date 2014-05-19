@@ -1,3 +1,5 @@
+var message;
+
 var socket;
 
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
@@ -58,23 +60,23 @@ function start() {
 	socket = io.connect("http://localhost", { port: 8000, transports: ["websocket"] });
 	socket.emit("login", { username: name, password: hashPass });
 
-	setEventHandlers();
 	setup();
+	setEventHandlers();
 }
 
 var setEventHandlers = function () {
     socket.on("connect", onSocketConnected);
     socket.on("disconnect", onSocketDisconnect);
     socket.on("verify", onVerify);
-    socket.on("new player", onNewPlayer);
+    socket.on("existing player", onExistingPlayer);
     socket.on("new pellet", onNewPellet);
+    socket.on("my position", onMyPosition);
     socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
 };
 
 function onSocketConnected() {
     console.log("Connected to socket server");
-    socket.emit("new player", { x:me.x, y:me.y, fill: me.fill });
 };
 
 function onSocketDisconnect() {
@@ -96,14 +98,14 @@ function onVerify(data) {
         document.location.reload();
     }
     if (confirm)
-        socket.emit("new player", { fill: "#FF0000" });
+        socket.emit("new player", { x: me.x, y: me.y });
 };
 
-function onNewPlayer(data) {
+function onExistingPlayer(data) {
     console.log("New player created: " + data.id);
-    document.write("New player created: " + data.id);
-    var newPlayer = new pellet(data.x, data.y, 10, 10, "#FF0000", 2, 0, 0, 0, 0, data.id);
+    var newPlayer = new pellet(data.x, data.y, 10, 10, "#FF0000", data.speed, 0, 0, 0, 0, data.id);
     enemies.push(newPlayer);
+    document.write("New player: " + data.id);
 };
 
 function onNewPellet(data) {
@@ -112,13 +114,22 @@ function onNewPellet(data) {
     pellets.push(newPellet);
 };
 
+function onMyPosition(data) {
+    me.x = data.x;
+    me.y = data.y;
+    me.dx = data.dx;
+    me.dy = data.dy;
+}
+
 function onMove(data) {
     var player = findPlayer(data.id);
     if (!player)
         console.log("Player not found: " + data.id);
     else {
-        player.dx *= data.dx;
-        player.dy *= data.dy;
+        player.x = data.x;
+        player.y = data.y;
+        player.dx = data.dx;
+        player.dy = data.dy;
     }
 };
 
@@ -179,8 +190,8 @@ pellet.prototype.draw = function (ctx) {
 }
 
 pellet.prototype.die = function() {
-	this.x = Math.min(width * Math.random(), width - 10);
-    this.y = Math.min(height * Math.random(), height - 10);
+    this.x = (width + me.w) / 2;
+    this.y = (height + me.h) / 2;
     this.w = 10;
     this.h = 10;
     this.score = 0;
@@ -315,6 +326,8 @@ var update = function () {
         me.y += me.dy;
     }
     me.wait -= 10;
+
+    message = "My position : " + me.x + ", " + me.y;
 }
 
 //Render Loop
@@ -351,6 +364,7 @@ var main = function () {
 		ctx.font = "24px Helvetica";
 		ctx.textAlign = "center";
 		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
+		ctx.fillText(message, canvas.width / 2, canvas.height / 3);
 	}
 }
 
