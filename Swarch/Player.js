@@ -1,7 +1,7 @@
 ﻿var Player = function (startX, startY) {
     var id;
-    var x = startx;
-    var y = starty;
+    var x = startX;
+    var y = startY;
     var direction;
 
     var getX = function () {

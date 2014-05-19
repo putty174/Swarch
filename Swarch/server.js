@@ -17,7 +17,7 @@ app.get('/', function (req, res) {
 // Start listening on socket
 var server = app.listen(8000);
 var socket = io.listen(server);
-var players = [];
+var players = {};
 
 function init() {
 
@@ -42,13 +42,17 @@ function onSocketConnection(client){
 };
 
 function onClientDisconnect() {
-    util.log("Player has disconnected:" + this.id);
+	var playerid = this.username;
+    util.log("Player has disconnected:" + playerid);
+	this.broadcast.emit("remove player", { id: playerid });
+	delete players[playerid];
 };
 
 function onLogin(data) {
     var name = data.username;
     var pass = data.password;
-	var temp = this;
+    var temp = this;
+	this.username = name;
     
     util.log("Name: " + name);
     util.log("Pass:" + pass);
@@ -71,27 +75,22 @@ function onLogin(data) {
 };
 
 function onNewPlayer(data) {
-    var newPlayer = new Player(data.x, data.y);
-    newPlayer.id = this.id;
+    var playerid = this.username;
+	this.emit("setup", {id: playerid});
+	util.log("New Player: " + playerid);
+	players[playerid] = new Player(data.x, data.y);
 
-    this.broadcast.emit("new player", { id: newplayer.id, x: newPlayer.getX(), y: newPlayer.getY() });
+    this.broadcast.emit("new player", { id: playerid, x: players[playerid].getX(), y: players[playerid].getY() });
 
-    var i, existingPlayer;
-    for (i = 0; i < players.length; i++) {
-        existingPlayer = players[i];
-        this.emit("new player", { id: existingPlayer.id, x: existingPlayer.getX(), y: existingPlayer.getY() });
-    };
-    players.push(newPlayer);
+	for (var id in players) {
+		util.log("Sending data for " + id);
+		this.emit("new player", { id: id, x: players[id].getX(), y: players[id].getY() });
+	}
 };
 
 function onMovePlayer(data) {
-    var i, existingPlayer;
-    for (i = 0; i < players.length; i++) {
-        existingPlayer = player[i];
-        this.emit("move", { id: existingPlayer.id, direction: data.direction });
-        if (existingPlayer.id == this.id)
-            existingPlayer.direction = data.direction;
-    };
+	players[data.id].setDirection(data.direction);
+    this.broadcast.emit("move player", { id: data.id, direction: data.direction });
 };
 
 init();
