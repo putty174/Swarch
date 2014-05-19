@@ -49,6 +49,30 @@ function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum) {
     this.id = idnum || 0;
 }
 
+//Pellet die
+pellet.prototype.die = function () {
+    this.x = Math.min(width * Math.random(), width - 10);
+    this.y = Math.min(height * Math.random(), height - 10);
+    this.w = 10;
+    this.h = 10;
+    this.score = 0;
+    this.speed = 2;
+    this.dx = 0;
+    this.dy = 0;
+}
+
+//Pellet eat another and grow
+pellet.prototype.eat = function (target) {
+    this.score++;
+    this.x -= 1;
+    this.y -= 1;
+    this.w += 2;
+    this.h += 2;
+    this.speed *= 0.9;
+    this.wait = (this.w - 10) / 2;
+    target.die();
+}
+
 var setEventHandlers = function(){
     socket.sockets.on("connection", onSocketConnection);
 };
@@ -113,9 +137,6 @@ function onNewPlayer(data) {
 		util.log("Sending data for " + id);
 		this.emit("new player", { id: id, x: players[id].x, y: players[id].y });
 	}
-    
-	
-
 };
 
 function onMove(data) {
@@ -150,14 +171,45 @@ function onEat(data) {
     checkCollision(data.id, data.target);
 };
 
+
 function checkCollision(player, target) {
-    util.log("Collide");
+    //Check if run into wall
+    if (player.x < 0 || (player.x + player.w) > width || player.y < 0 || (player.y + player.h) > height) {
+        util.log("Wall Crash: " + player.id);
+        player.x = (width + 10) / 2;
+        player.y = (height + 10) / 2;
+    }
+
+    //Check if run into target
+    if (player.x <= (target.x + target.w) && target.x <= (player.x + player.w) && player.y <= (target.y + target.h) && target.y <= (player.y + player.h)) {
+        if (player.score > target.score) {
+            player.eat(target);
+        }
+        else if (player.score < target.score) {
+            target.eat(player);
+        }
+        else {
+            player.die();
+            target.die();
+        }
+    }
 };
 
 var update = function() {
 	for (var id in players) {
 		players[id].x += players[id].dx;
 		players[id].y += players[id].dy;
+
+		util.log("Position: " + players[id].id + " >>> " + players[id].x + ", " + players[id].y);
+
+		for (var target in players) {
+		    if (players[id].id != players[target].id)
+		        checkCollision(players[id], players[target]);
+		}
+
+		for (var pel in pellets) {
+		    checkCollision(players[id], pellets[pel]);
+		}
 		
 		/*
 		if (players[i].x < 0 || players[i].y > width || players[i].y < 0 || players[i].y > height) {
