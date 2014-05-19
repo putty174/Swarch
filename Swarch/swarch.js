@@ -1,3 +1,5 @@
+var message;
+
 var socket;
 
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
@@ -58,8 +60,8 @@ function start() {
 	socket = io.connect("localhost", { port: 8000, transports: ["websocket"] });
 	socket.emit("login", { username: name, password: hashPass });
 
-	setEventHandlers();
 	setup();
+	setEventHandlers();
 }
 
 var setEventHandlers = function () {
@@ -69,6 +71,7 @@ var setEventHandlers = function () {
 	socket.on("setup", onSetup);
     socket.on("new player", onNewPlayer);
     socket.on("new pellet", onNewPellet);
+    socket.on("my position", onMyPosition);
     socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
 };
@@ -143,22 +146,17 @@ function onNewPellet(data) {
     pellets.push(newPellet);
 };
 
+function onMyPosition(data) {
+    me.x = data.x;
+    me.y = data.y;
+    me.dx = data.dx;
+    me.dy = data.dy;
+};
+
 function onRemovePlayer(data){
 	console.log("Player " + data.id + " has left the game.");
 	delete enemies[data.id];
 };
-
-function findPlayer(id) {
-    var i, player;
-    player = false;
-    for (i = 0; i < enemies.length; i++) {
-        if (enemies[i].id == id) {
-            player = enemies[i];
-            return player;
-        }
-    }
-    return player;
-}
 
 //Setup game by placing objects
 var setup = function () {
@@ -196,8 +194,8 @@ pellet.prototype.draw = function (ctx) {
 }
 
 pellet.prototype.die = function() {
-	this.x = Math.min(width * Math.random(), width - 10);
-    this.y = Math.min(height * Math.random(), height - 10);
+    this.x = (width + me.w) / 2;
+    this.y = (height + me.h) / 2;
     this.w = 10;
     this.h = 10;
     this.score = 0;
@@ -374,6 +372,7 @@ var main = function () {
 		ctx.font = "24px Helvetica";
 		ctx.textAlign = "center";
 		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
+		ctx.fillText(message, canvas.width / 2, canvas.height / 3);
 	}
 }
 
