@@ -213,7 +213,6 @@ function checkCollision(player, target) {
 };
 
 var update = function () {
-    now = Date.now();
 	for (var id in players) {
 		players[id].x += players[id].dx;
 		players[id].y += players[id].dy;
