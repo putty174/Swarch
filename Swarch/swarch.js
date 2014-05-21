@@ -4,6 +4,9 @@ var socket;
 
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
 var confirm = false;
+var time = Date.now();
+var now = Date.now();
+var lag = now - time;
 
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
@@ -74,6 +77,9 @@ var setEventHandlers = function () {
     socket.on("my position", onMyPosition);
     socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
+
+    socket.on("ping", onPing);
+    socket.on("pong", onPong);
 };
 
 function onSocketConnected() {
@@ -157,6 +163,14 @@ function onRemovePlayer(data){
 	console.log("Player " + data.id + " has left the game.");
 	delete enemies[data.id];
 };
+
+function onPing(data) {
+    document.write("Ping Recieved");
+    now = Date.now();
+    this.emit("pong", { id: me.id });
+    lag = now - time;
+    message = lag;
+}
 
 //Setup game by placing objects
 var setup = function () {
@@ -299,7 +313,7 @@ var update = function () {
                 me.dy = me.speed;
 				socket.emit("move", { id: me.id, direction: "down" });
             }
-            else if (e.keyCode == 32) {
+            else if (e.keyCode == 32) { //stop
                 me.dx = 0;
                 me.dy = 0;
 				socket.emit("move", { id: me.id, direction: "stop" });
@@ -343,6 +357,14 @@ var clean = function () {
     ctx.fillRect(0, 0, width, height);
 }
 
+//Starts ping check process
+var ping = function () {
+    time = Date.now();
+    message = time - now;
+    if (time - now > 1000)
+        socket.emit("ping", { id: me.id });
+}
+
 //Main Game Loop
 var main = function () {
 	if (me !== undefined) {
@@ -351,6 +373,8 @@ var main = function () {
 		update();
 		
 		render();
+
+		ping();
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.font = "10px Helvetica";
 		ctx.textAlign = "center";

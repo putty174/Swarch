@@ -3,9 +3,6 @@ var io = require("socket.io");
 var express = require("express");
 var db = require("mongojs").connect("userdb", ["users"]);
 
-var width = 600;
-var height = 400;
-
 var app = express();
 // Sets default directory for files
 // Ex. __dirname + '/public' would set the public folder as the top folder
@@ -19,6 +16,11 @@ app.get('/', function (req, res) {
 // Start listening on socket
 var server = app.listen(8000);
 var socket = io.listen(server);
+var time = Date.now();
+var now = Date.now();
+var width = 600;
+var height = 400;
+
 var players = {};
 var pellets = [];
 
@@ -36,7 +38,7 @@ function init() {
 };
 
 //Pellet class
-function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum) {
+function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum, t, latency) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
@@ -47,6 +49,8 @@ function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum) {
     this.dy = movey || 0;
     this.wait = wait || 0;
     this.id = idnum || 0;
+    this.time = t || Date.now();
+    this.lag = latency || 0;
 }
 
 //Pellet die
@@ -84,6 +88,9 @@ function onSocketConnection(client){
     client.on("new player", onNewPlayer);
     client.on("eat", onEat);
     client.on("move", onMove);
+    
+    client.on("ping", onPing);
+    client.on("pong", onPong);
 };
 
 function onClientDisconnect() {
@@ -171,6 +178,16 @@ function onEat(data) {
     checkCollision(data.id, data.target);
 };
 
+function onPing(data) {
+    util.log("Ping Test" + players[data.id]);
+    players[data.id].time = Date.now();
+    this.emit("ping");
+}
+
+function onPong(data) {
+    players[data.id].lag = (Date.now() - players[data.id].time) / 2;
+    util.log("Latency: " + data.id + " - " + players[data.id].lag);
+}
 
 function checkCollision(player, target) {
     //Check if run into wall
@@ -195,12 +212,13 @@ function checkCollision(player, target) {
     }
 };
 
-var update = function() {
+var update = function () {
+    now = Date.now();
 	for (var id in players) {
 		players[id].x += players[id].dx;
 		players[id].y += players[id].dy;
 
-		util.log("Position: " + players[id].id + " >>> " + players[id].x + ", " + players[id].y);
+		//util.log("Position: " + players[id].id + " >>> " + players[id].x + ", " + players[id].y);
 
 		for (var target in players) {
 		    if (players[id].id != players[target].id)
