@@ -98,6 +98,10 @@ function onVerify(data) {
         check = "Hello new user";
         confirm = true;
     }
+	else if (check == "duplicate") {
+		alert("User currently logged in.");
+		document.location.reload();
+	}
     else {
         alert("Bad Username/Password.\nPlease try again.");
         document.location.reload();
@@ -150,9 +154,10 @@ function onNewPellet(data) {
 		pellets.push(new pellet(data.newX, data.newY, 10, 10, "#AAAAAA"));
 	else {
 		for (var i = 0; i < pellets.length; i++) {
-			if (data.oldX - pellets[i].x < 0.1 && data.oldY - pellets[i].y < 0.1) {
+			if (Math.abs(data.oldX - pellets[i].x) < 0.1 && Math.abs(data.oldY - pellets[i].y < 0.1)) {
 				pellets[i].x = data.newX;
 				pellets[i].y = data.newY;
+				return;
 			}
 		}
 	}

@@ -104,6 +104,12 @@ function onLogin(data) {
     var name = data.username;
     var pass = data.password;
     var temp = this;
+	
+	if (players[name]) {
+		temp.emit("verify", { success: "duplicate" });
+		return;
+	}
+	
 	this.username = name;
     
     util.log("Name: " + name);
@@ -286,9 +292,7 @@ var update = function () {
 		        checkCollision(players[id], players[target]);
 		}
 
-		for (var i = 0; i < 4; i++) {
-			checkCollision(players[id], pellets[i]);
-		}
+		checkPellets(players[id]);
 	}
 	
 	//if (++frameCount >= 30) {
