@@ -76,9 +76,8 @@ var setEventHandlers = function () {
     socket.on("sync", onSync);
     socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
-
-    socket.on("ping", onPing);
-    socket.on("pong", onPong);
+	socket.on("ping", onPing);
+    //socket.on("pong", onPong);
 };
 
 function onSocketConnected() {
@@ -158,6 +157,7 @@ function onSync(data) {
 	else
 		syncing = enemies[data.id];
 
+	console.log("Syncing " + data.id);
 	syncing.x = data.x;
 	syncing.y = data.y;
 	syncing.dx = data.dx;
@@ -331,11 +331,12 @@ var update = function () {
 		});
     }
 
-    if (me.wait < 0) {
+    //if (me.wait < 0) {
         me.x += me.dx;
         me.y += me.dy;
-    }
-    me.wait -= 10;
+    //}
+    //me.wait -= 10;
+	
 	
 	for (var id in enemies) {
 		if (enemies[id].wait < 0) {
@@ -400,6 +401,7 @@ var main = function () {
 			ctx.fillText(check, canvas.width / 2, canvas.height / 2);
 			//ctx.fillText(message, canvas.width / 2, canvas.height / 3);
 		}
+		console.log("(" + me.x + ", " + me.y + ") at " + me.speed);
 	}
 }
 

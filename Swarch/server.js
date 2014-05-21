@@ -30,10 +30,10 @@ function init() {
         socket.set("transports", ["websocket"]);
         socket.set("log level", 2);
     });
-    pellets.push(new pellet(width * 0.25, height * 0.25, 10, 10));
-    pellets.push(new pellet(width * 0.25, height * 0.75, 10, 10));
-    pellets.push(new pellet(width * 0.75, height * 0.25, 10, 10));
-    pellets.push(new pellet(width * 0.75, height * 0.75, 10, 10));
+    pellets.push(new pellet(width * 0.25, height * 0.25, 10, 10, 0, -1));
+    pellets.push(new pellet(width * 0.25, height * 0.75, 10, 10, 0, -1));
+    pellets.push(new pellet(width * 0.75, height * 0.25, 10, 10, 0, -1));
+    pellets.push(new pellet(width * 0.75, height * 0.75, 10, 10, 0, -1));
     setEventHandlers();
 };
 
@@ -192,10 +192,13 @@ function checkWallCollisions() {
 	for (var id in players) {
 		if (players[id].x < 0 || (players[id].x + players[id].w) > width || players[id].y < 0 || (players[id].y + players[id].h) > height) {
 			util.log("Wall Crash: " + id);
+			players[id].die();
+			/*
 			players[id].x = (width + 10) / 2;
 			players[id].y = (height + 10) / 2;
 			players[id].dx = 0;
 			players[id].dy = 0;
+			*/
 			sync();
 		}
 	}
@@ -220,7 +223,8 @@ function checkCollision(player, target) {
 
 function sync() {
 	for (var id in players) {
-		socket.sockets.send("sync", { id: id, 
+		util.log("Syncing " + id);
+		socket.sockets.emit("sync", { id: id, 
 									  x: players[id].x, 
 									  y: players[id].y, 
 									  dx: players[id].dx,
@@ -240,7 +244,7 @@ var update = function () {
 	    players[id].x += players[id].dx;
 	    players[id].y += players[id].dy;
 
-	    //util.log("Position: " + id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
+	    util.log("Position: " + id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
 		//util.log("lag: " + players[id].lag);
 
 		for (var target in players) {
@@ -253,7 +257,7 @@ var update = function () {
 		}
 	}
 	
-	if (++frameCount >= 60) {
+	if (++frameCount >= 30) {
 		frameCount = 0;
 		sync();
 	}
