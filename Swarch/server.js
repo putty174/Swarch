@@ -133,8 +133,7 @@ function onNewPlayer(data) {
 	players[playerid] = new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 2, 0);
 	this.emit("setup", { id: playerid, x: players[playerid].x, y: players[playerid].y });
     
-	var i;
-	for (i = 0; i < pellets.length; i++) {
+	for (var i = 0; i < pellets.length; i++) {
 	    this.emit("new pellet", { x: pellets[i].x, y: pellets[i].y });
 	}
 
@@ -185,19 +184,24 @@ function onPing(data) {
 
 function onPong(data) {
     players[data.id].lag = (Date.now() - players[data.id].time) / 2;
-    this.emit("my position", { x: players[data.id].x, y: players[data.id].y, dx: players[data.id].dx, dy: players[data.id].dy });
+    //this.emit("my position", { x: players[data.id].x, y: players[data.id].y, dx: players[data.id].dx, dy: players[data.id].dy });
+}
+
+function checkWallCollisions() {
+	//Check if run into wall
+	for (var id in players) {
+		if (players[id].x < 0 || (players[id].x + players[id].w) > width || players[id].y < 0 || (players[id].y + players[id].h) > height) {
+			util.log("Wall Crash: " + id);
+			players[id].x = (width + 10) / 2;
+			players[id].y = (height + 10) / 2;
+			players[id].dx = 0;
+			players[id].dy = 0;
+			sync();
+		}
+	}
 }
 
 function checkCollision(player, target) {
-    //Check if run into wall
-    if (player.x < 0 || (player.x + player.w) > width || player.y < 0 || (player.y + player.h) > height) {
-        util.log("Wall Crash: " + player.id);
-        player.x = (width + 10) / 2;
-        player.y = (height + 10) / 2;
-        player.dx = 0;
-        player.dy = 0;
-    }
-
     //Check if run into target
     if (player.x <= (target.x + target.w) && target.x <= (player.x + player.w) && player.y <= (target.y + target.h) && target.y <= (player.y + player.h)) {
         if (player.score > target.score) {
@@ -210,32 +214,48 @@ function checkCollision(player, target) {
             player.die();
             target.die();
         }
+		sync();
     }
 };
 
-var update = function () {
+function sync() {
 	for (var id in players) {
-	    players[id].x += (players[id].dx * (1 + players[id].lag));
-	    players[id].y += (players[id].dy * (1 + players[id].lag));
+		socket.sockets.send("sync", { id: id, 
+									  x: players[id].x, 
+									  y: players[id].y, 
+									  dx: players[id].dx,
+									  dy: players[id].dy,
+									  w: players[id].w,
+									  h: players[id].h,
+									  speed: players[id].speed,
+									  score: players[id].score });
+	}
+};
 
-	    util.log("Position: " + players[id].id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
+var frameCount = 0;
+var update = function () {
+	checkWallCollisions();
+
+	for (var id in players) {
+	    players[id].x += players[id].dx;
+	    players[id].y += players[id].dy;
+
+	    //util.log("Position: " + id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
 		//util.log("lag: " + players[id].lag);
 
 		for (var target in players) {
-		    if (players[id].id != players[target].id)
+		    if (id != target)
 		        checkCollision(players[id], players[target]);
 		}
 
-		for (var pel in pellets) {
-		    checkCollision(players[id], pellets[pel]);
+		for (var i = 0; i < 4; i++) {
+			checkCollision(players[id], pellets[i]);
 		}
-		
-		/*
-		if (players[i].x < 0 || players[i].y > width || players[i].y < 0 || players[i].y > height) {
-            players[i].x = (width + 10) / 2;
-            players[i].y = (height + 10) / 2;
-        }
-		*/
+	}
+	
+	if (++frameCount >= 60) {
+		frameCount = 0;
+		sync();
 	}
 };
 

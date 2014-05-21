@@ -5,8 +5,7 @@ var socket;
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
 var confirm = false;
 var time = Date.now();
-var now = Date.now();
-var lag = now - time;
+var lag;
 
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
@@ -74,7 +73,7 @@ var setEventHandlers = function () {
 	socket.on("setup", onSetup);
     socket.on("new player", onNewPlayer);
     socket.on("new pellet", onNewPellet);
-    socket.on("my position", onMyPosition);
+    socket.on("sync", onSync);
     socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
 
@@ -152,11 +151,21 @@ function onNewPellet(data) {
     pellets.push(newPellet);
 };
 
-function onMyPosition(data) {
-    me.x = data.x;
-    me.y = data.y;
-    me.dx = data.dx;
-    me.dy = data.dy;
+function onSync(data) {
+	var syncing;
+	if (data.id == me.id)
+		syncing = me;
+	else
+		syncing = enemies[data.id];
+
+	syncing.x = data.x;
+	syncing.y = data.y;
+	syncing.dx = data.dx;
+	syncing.dy = data.dy;
+	syncing.w = data.w;
+	syncing.h = data.h;
+	syncing.speed = data.speed;
+	syncing.score = data.score;
 };
 
 function onRemovePlayer(data){
@@ -165,9 +174,8 @@ function onRemovePlayer(data){
 };
 
 function onPing(data) {
-    now = Date.now();
     this.emit("pong", { id: me.id });
-    lag = (now - time) / 2;
+    lag = (Date.now() - time) / 2;
 }
 
 //Setup game by placing objects
@@ -220,7 +228,7 @@ pellet.prototype.eat = function (i) {
     this.h += 2;
     this.speed *= 0.9;
     this.wait = (this.w - 10) / 2;
-    addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
+    //addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
 }
 
 // Eat player
@@ -282,7 +290,7 @@ var checkCollide = function () {
 
 //Reads input from keyboard and moves player accordingly
 var update = function () {
-    checkCollide();
+    //checkCollide();
 
     if (confirm) {
         $(document).keydown(function(e) {
@@ -357,21 +365,21 @@ var clean = function () {
 
 //Starts ping check process
 var ping = function () {
-    time = Date.now();
-    if (time - now > 1000)
+    if (Date.now() - time > 1000) {
         socket.emit("ping", { id: me.id });
+		time = Date.now();
+	}
 }
 
+var messageTimeout = 0;
 //Main Game Loop
 var main = function () {
 	if (me !== undefined) {
 		clean();
-		
 		update();
-		
 		render();
-
 		ping();
+		
 		ctx.fillStyle = "rgb(0, 0, 0)";
 		ctx.font = "10px Helvetica";
 		ctx.textAlign = "center";
@@ -385,11 +393,13 @@ var main = function () {
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
 
-		message = "(" + me.x + ", " + me.y + ") at " + me.speed;
-		ctx.font = "24px Helvetica";
-		ctx.textAlign = "center";
-		ctx.fillText(check, canvas.width / 2, canvas.height / 2);
-		ctx.fillText(message, canvas.width / 2, canvas.height / 3);
+		if (++messageTimeout < 60*5) {
+			message = "(" + me.x + ", " + me.y + ") at " + me.speed;
+			ctx.font = "24px Helvetica";
+			ctx.textAlign = "center";
+			ctx.fillText(check, canvas.width / 2, canvas.height / 2);
+			//ctx.fillText(message, canvas.width / 2, canvas.height / 3);
+		}
 	}
 }
 
