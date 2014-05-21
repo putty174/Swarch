@@ -74,7 +74,7 @@ pellet.prototype.eat = function (target) {
     this.h += 2;
     this.speed *= 0.9;
     this.wait = (this.w - 10) / 2;
-    target.die();
+    //target.die();
 }
 
 var setEventHandlers = function(){
@@ -134,7 +134,7 @@ function onNewPlayer(data) {
 	this.emit("setup", { id: playerid, x: players[playerid].x, y: players[playerid].y });
     
 	for (var i = 0; i < pellets.length; i++) {
-	    this.emit("new pellet", { x: pellets[i].x, y: pellets[i].y });
+	    this.emit("new pellet", { newX: pellets[i].x, newY: pellets[i].y });
 	}
 
     this.broadcast.emit("new player", { id: playerid, x: players[playerid].x, y: players[playerid].y });
@@ -209,9 +209,11 @@ function checkCollision(player, target) {
     if (player.x <= (target.x + target.w) && target.x <= (player.x + player.w) && player.y <= (target.y + target.h) && target.y <= (player.y + player.h)) {
         if (player.score > target.score) {
             player.eat(target);
+			target.die();
         }
         else if (player.score < target.score) {
             target.eat(player);
+			player.die();
         }
         else {
             player.die();
@@ -221,9 +223,22 @@ function checkCollision(player, target) {
     }
 };
 
+function checkPellets(player) {
+	for (var i = 0; i < pellets.length; i++) {
+        if (player.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (player.x + player.w) && player.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (player.y + player.h)) {
+            player.eat(i);
+			var oldX = pellets[i].x;
+			var oldY = pellets[i].y;
+			pellets[i].x = Math.min(width * Math.random(), width - 10);
+			pellets[i].y = Math.min(height * Math.random(), height - 10);
+			socket.sockets.emit("new pellet", { oldX: oldX, oldY: oldY, newX: pellets[i].x, newY: pellets[i].y });
+        }
+	}
+};
+
 function sync() {
 	for (var id in players) {
-		util.log("Syncing " + id);
+		//util.log("Syncing " + id);
 		socket.sockets.emit("sync", { id: id, 
 									  x: players[id].x, 
 									  y: players[id].y, 
@@ -236,15 +251,34 @@ function sync() {
 	}
 };
 
+// FPS Counter
+var fps = {
+	startTime : 0,
+	frameNumber : 0,
+	getFPS : function(){
+		this.frameNumber++;
+		var d = new Date().getTime(),
+			currentTime = ( d - this.startTime ) / 1000,
+			result = Math.floor( ( this.frameNumber / currentTime ) );
+
+		if( currentTime > 1 ){
+			this.startTime = new Date().getTime();
+			this.frameNumber = 0;
+		}
+		return result;
+	}	
+};
+
 var frameCount = 0;
 var update = function () {
+	//util.log(fps.getFPS() + "FPS");
 	checkWallCollisions();
 
 	for (var id in players) {
 	    players[id].x += players[id].dx;
 	    players[id].y += players[id].dy;
 
-	    util.log("Position: " + id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
+	    //util.log("Position: " + id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
 		//util.log("lag: " + players[id].lag);
 
 		for (var target in players) {
@@ -257,10 +291,10 @@ var update = function () {
 		}
 	}
 	
-	if (++frameCount >= 30) {
-		frameCount = 0;
+	//if (++frameCount >= 30) {
+	//	frameCount = 0;
 		sync();
-	}
+	//}
 };
 
 init();

@@ -145,9 +145,17 @@ function onMove(data) {
 };
 
 function onNewPellet(data) {
-    console.log("New Pellet Created: " + data.x + ", " + data.y);
-    var newPellet = new pellet(data.x, data.y, 10, 10, "#AAAAAA");
-    pellets.push(newPellet);
+    console.log("New Pellet Created: " + data.newX + ", " + data.newY);
+	if (pellets.length < 4) 
+		pellets.push(new pellet(data.newX, data.newY, 10, 10, "#AAAAAA"));
+	else {
+		for (var i = 0; i < pellets.length; i++) {
+			if (data.oldX - pellets[i].x < 0.1 && data.oldY - pellets[i].y < 0.1) {
+				pellets[i].x = data.newX;
+				pellets[i].y = data.newY;
+			}
+		}
+	}
 };
 
 function onSync(data) {
@@ -157,7 +165,6 @@ function onSync(data) {
 	else
 		syncing = enemies[data.id];
 
-	console.log("Syncing " + data.id);
 	syncing.x = data.x;
 	syncing.y = data.y;
 	syncing.dx = data.dx;
@@ -275,17 +282,17 @@ var checkCollide = function () {
     }
 	*/
 
+		/*
     //Collision with pellets
     for (var i = 0; i < pellets.length; i++) {
         if (me.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (me.x + me.w) && me.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (me.y + me.h)) {
             me.eat(i);
         }
-		/*
         if (enemy.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (enemy.x + enemy.w) && enemy.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (enemy.y + enemy.h)) {
             enemy.eat(i);
         }
-		*/
     }
+		*/
 }
 
 //Reads input from keyboard and moves player accordingly
@@ -332,8 +339,8 @@ var update = function () {
     }
 
     //if (me.wait < 0) {
-        me.x += me.dx;
-        me.y += me.dy;
+    //    me.x += me.dx;
+    //    me.y += me.dy;
     //}
     //me.wait -= 10;
 	
@@ -401,7 +408,6 @@ var main = function () {
 			ctx.fillText(check, canvas.width / 2, canvas.height / 2);
 			//ctx.fillText(message, canvas.width / 2, canvas.height / 3);
 		}
-		console.log("(" + me.x + ", " + me.y + ") at " + me.speed);
 	}
 }
 
