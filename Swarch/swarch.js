@@ -165,11 +165,9 @@ function onRemovePlayer(data){
 };
 
 function onPing(data) {
-    document.write("Ping Recieved");
     now = Date.now();
     this.emit("pong", { id: me.id });
-    lag = now - time;
-    message = lag;
+    lag = (now - time) / 2;
 }
 
 //Setup game by placing objects
@@ -360,7 +358,6 @@ var clean = function () {
 //Starts ping check process
 var ping = function () {
     time = Date.now();
-    message = time - now;
     if (time - now > 1000)
         socket.emit("ping", { id: me.id });
 }
@@ -388,6 +385,7 @@ var main = function () {
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
 
+		message = "(" + me.x + ", " + me.y + ") at " + me.speed;
 		ctx.font = "24px Helvetica";
 		ctx.textAlign = "center";
 		ctx.fillText(check, canvas.width / 2, canvas.height / 2);

@@ -179,14 +179,13 @@ function onEat(data) {
 };
 
 function onPing(data) {
-    util.log("Ping Test" + players[data.id]);
     players[data.id].time = Date.now();
     this.emit("ping");
 }
 
 function onPong(data) {
     players[data.id].lag = (Date.now() - players[data.id].time) / 2;
-    util.log("Latency: " + data.id + " - " + players[data.id].lag);
+    this.emit("my position", { x: players[data.id].x, y: players[data.id].y, dx: players[data.id].dx, dy: players[data.id].dy });
 }
 
 function checkCollision(player, target) {
@@ -195,6 +194,8 @@ function checkCollision(player, target) {
         util.log("Wall Crash: " + player.id);
         player.x = (width + 10) / 2;
         player.y = (height + 10) / 2;
+        player.dx = 0;
+        player.dy = 0;
     }
 
     //Check if run into target
@@ -214,10 +215,11 @@ function checkCollision(player, target) {
 
 var update = function () {
 	for (var id in players) {
-		players[id].x += players[id].dx;
-		players[id].y += players[id].dy;
+	    players[id].x += (players[id].dx * (1 + players[id].lag));
+	    players[id].y += (players[id].dy * (1 + players[id].lag));
 
-		//util.log("Position: " + players[id].id + " >>> " + players[id].x + ", " + players[id].y);
+	    util.log("Position: " + players[id].id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
+		//util.log("lag: " + players[id].lag);
 
 		for (var target in players) {
 		    if (players[id].id != players[target].id)
