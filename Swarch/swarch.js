@@ -170,6 +170,10 @@ function onSync(data) {
 	else
 		syncing = enemies[data.id];
 
+	syncing.lastX = syncing.x;
+	syncing.lastY = syncing.y;
+	syncing.frame = 0;
+
 	syncing.x = data.x;
 	syncing.y = data.y;
 	syncing.dx = data.dx;
@@ -201,7 +205,7 @@ var addPellet = function (pellet) {
 }
 
 //Pellet class
-function pellet(x, y, w, h, fill, speed, score, movex, movey, wait) {
+function pellet(x, y, w, h, fill, speed, score, movex, movey, wait, lx, ly, f) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
@@ -212,6 +216,10 @@ function pellet(x, y, w, h, fill, speed, score, movex, movey, wait) {
     this.dx = movex || 0;
     this.dy = movey || 0;
     this.wait = wait || 0;
+
+    this.lastX = lx || 0;
+    this.lastY = ly || 0;
+    this.frame = f || 0;
 }
 
 //Pellet helper function to draw pellet
@@ -343,6 +351,11 @@ var update = function () {
 		});
     }
 
+    if (me.frame > 0) {
+        me.x += (me.x - me.lastX) / (1 + me.frame);
+        me.y += (me.y - me.lastY) / (1 + me.frame);
+    }
+
     //if (me.wait < 0) {
     //    me.x += me.dx;
     //    me.y += me.dy;
@@ -365,8 +378,11 @@ var render = function () {
         pellets[i].draw(ctx);
     }
     me.draw(ctx);
+    me.frame++;
+    message = me.frame;
     for (var id in enemies) {
         enemies[id].draw(ctx);
+        enemies[id].frame++;
     }
 }
 
@@ -406,13 +422,15 @@ var main = function () {
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
 
-		if (++messageTimeout < 60*5) {
-			message = "(" + me.x + ", " + me.y + ") at " + me.speed;
-			ctx.font = "24px Helvetica";
-			ctx.textAlign = "center";
-			ctx.fillText(check, canvas.width / 2, canvas.height / 2);
-			//ctx.fillText(message, canvas.width / 2, canvas.height / 3);
-		}
+		ctx.fillText(message, canvas.width / 2, canvas.height / 3);
+
+		//if (++messageTimeout < 60*5) {
+		//	message = "(" + me.x + ", " + me.y + ") at " + me.speed;
+		//	ctx.font = "24px Helvetica";
+		//	ctx.textAlign = "center";
+		//	ctx.fillText(check, canvas.width / 2, canvas.height / 2);
+		//	//ctx.fillText(message, canvas.width / 2, canvas.height / 3);
+		//}
 	}
 }
 
