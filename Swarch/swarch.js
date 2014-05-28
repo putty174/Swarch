@@ -422,8 +422,6 @@ var main = function () {
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
 
-		ctx.fillText(message, canvas.width / 2, canvas.height / 3);
-
 		//if (++messageTimeout < 60*5) {
 		//	message = "(" + me.x + ", " + me.y + ") at " + me.speed;
 		//	ctx.font = "24px Helvetica";
