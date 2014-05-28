@@ -60,6 +60,7 @@ function start() {
 	document.body.appendChild(canvas);
 	
 	socket = io.connect("localhost", { port: 8000, transports: ["websocket"] });
+	//socket = io.connect("98.164.217.165", { port: 8000, transports: ["websocket"] });   //Max IP address
 	socket.emit("login", { username: name, password: hashPass });
 
 	setup();
@@ -421,8 +422,6 @@ var main = function () {
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
 		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
-
-		ctx.fillText(message, canvas.width / 2, canvas.height / 3);
 
 		//if (++messageTimeout < 60*5) {
 		//	message = "(" + me.x + ", " + me.y + ") at " + me.speed;
