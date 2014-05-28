@@ -59,7 +59,7 @@ function start() {
 	document.write("<br>");
 	document.body.appendChild(canvas);
 	
-	socket = io.connect("localhost", { port: 8000, transports: ["websocket"] });
+	socket = io.connect(location.hostname, { port: location.port, transports: ["websocket"] });
 	socket.emit("login", { username: name, password: hashPass });
 
 	setup();
