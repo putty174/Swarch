@@ -43,7 +43,7 @@ function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum, t, latency)
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
-    this.speed = speed || 2;
+    this.speed = speed || 100;
     this.score = score || 0;
     this.dx = movex || 0;
     this.dy = movey || 0;
@@ -60,21 +60,31 @@ pellet.prototype.die = function () {
     this.w = 10;
     this.h = 10;
     this.score = 0;
-    this.speed = 2;
+    this.speed = 100;
     this.dx = 0;
     this.dy = 0;
+	sync();
 }
 
 //Pellet eat another and grow
 pellet.prototype.eat = function (target) {
-    this.score++;
-    this.x -= 1;
-    this.y -= 1;
-    this.w += 2;
-    this.h += 2;
-    this.speed *= 0.9;
+	if (target.score >= 0) {
+		this.score += 10;
+		this.x -= 10;
+		this.y -= 10;
+		this.w += 20;
+		this.h += 20;
+		this.speed *= Math.pow(0.95, 10);
+	} else {
+		this.score++;
+		this.x -= 1;
+		this.y -= 1;
+		this.w += 2;
+		this.h += 2;
+		this.speed *= 0.95;
+	}
     this.wait = (this.w - 10) / 2;
-    //target.die();
+	sync();
 }
 
 var setEventHandlers = function(){
@@ -136,7 +146,7 @@ function onLogin(data) {
 function onNewPlayer(data) {
     var playerid = this.username;
 	util.log("New Player: " + playerid);
-	players[playerid] = new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 2, 0);
+	players[playerid] = new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 100, 0);
 	this.emit("setup", { id: playerid, x: players[playerid].x, y: players[playerid].y });
     
 	for (var i = 0; i < pellets.length; i++) {
@@ -149,10 +159,13 @@ function onNewPlayer(data) {
 		util.log("Sending data for " + id);
 		this.emit("new player", { id: id, x: players[id].x, y: players[id].y });
 	}
+	
+	sync();
 };
 
 function onMove(data) {
 	dir = data.direction;
+	players[data.id].direction = dir;
 	
 	if (dir == "left") {  //left
 		players[data.id].dx = -players[data.id].speed;
@@ -175,7 +188,7 @@ function onMove(data) {
 		players[data.id].dy = 0;
 	}
 	
-    this.broadcast.emit("move", { id: data.id, direction: data.direction });
+	sync();
 };
 
 function onEat(data) {
@@ -190,7 +203,6 @@ function onPing(data) {
 
 function onPong(data) {
     players[data.id].lag = (Date.now() - players[data.id].time) / 2;
-    //this.emit("my position", { x: players[data.id].x, y: players[data.id].y, dx: players[data.id].dx, dy: players[data.id].dy });
 }
 
 function checkWallCollisions() {
@@ -199,13 +211,6 @@ function checkWallCollisions() {
 		if (players[id].x < 0 || (players[id].x + players[id].w) > width || players[id].y < 0 || (players[id].y + players[id].h) > height) {
 			util.log("Wall Crash: " + id);
 			players[id].die();
-			/*
-			players[id].x = (width + 10) / 2;
-			players[id].y = (height + 10) / 2;
-			players[id].dx = 0;
-			players[id].dy = 0;
-			*/
-			sync();
 		}
 	}
 }
@@ -225,7 +230,6 @@ function checkCollision(player, target) {
             player.die();
             target.die();
         }
-		sync();
     }
 };
 
@@ -250,9 +254,6 @@ function sync() {
 									  y: players[id].y, 
 									  dx: players[id].dx,
 									  dy: players[id].dy,
-									  w: players[id].w,
-									  h: players[id].h,
-									  speed: players[id].speed,
 									  score: players[id].score });
 	}
 };
@@ -277,15 +278,14 @@ var fps = {
 
 var frameCount = 0;
 var update = function () {
-	//util.log(fps.getFPS() + "FPS");
+	var currentFPS = fps.getFPS();
+	//util.log(currentFPS + "FPS");
 	checkWallCollisions();
 
+	var deltaTime = 1 / currentFPS;
 	for (var id in players) {
-	    players[id].x += players[id].dx;
-	    players[id].y += players[id].dy;
-
-	    //util.log("Position: " + id + " >>> " + players[id].x + ", " + players[id].y + " at " + players[id].speed);
-		//util.log("lag: " + players[id].lag);
+	    players[id].x += players[id].dx * deltaTime;
+	    players[id].y += players[id].dy * deltaTime;
 
 		for (var target in players) {
 		    if (id != target)
@@ -294,11 +294,6 @@ var update = function () {
 
 		checkPellets(players[id]);
 	}
-	
-	//if (++frameCount >= 30) {
-	//	frameCount = 0;
-		sync();
-	//}
 };
 
 init();

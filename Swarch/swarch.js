@@ -5,7 +5,7 @@ var socket;
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
 var confirm = false;
 var time = Date.now();
-var lag;
+var messageTimeout;
 
 var width = 600;    //Width of game screen
 var height = 400;   //Height of game screen
@@ -74,10 +74,8 @@ var setEventHandlers = function () {
     socket.on("new player", onNewPlayer);
     socket.on("new pellet", onNewPellet);
     socket.on("sync", onSync);
-    socket.on("move", onMove);
     socket.on("remove player", onRemovePlayer);
 	socket.on("ping", onPing);
-    //socket.on("pong", onPong);
 };
 
 function onSocketConnected() {
@@ -90,6 +88,7 @@ function onSocketDisconnect() {
 
 function onVerify(data) {
     check = data.success;
+	messageTimeout = 5;
     if (check == "good") {
         check = "Welcome back";
         confirm = true;
@@ -110,7 +109,7 @@ function onVerify(data) {
 
 // Get player id and current state of game
 function onSetup(data) {
-    me = new pellet(data.x, data.y, 10, 10, "#00FF00", 2, 0, 0, 0, 0);
+    me = new pellet(data.x, data.y, 10, 10, "#00FF00", 100, 0, 0, 0);
 	me.id = data.id;
 	console.log("ID: " + me.id);
 }
@@ -118,33 +117,7 @@ function onSetup(data) {
 function onNewPlayer(data) {
 	if (data.id != me.id) {
 		console.log("New player connected: " + data.id);
-		enemies[data.id] = new pellet(data.x, data.y, 10, 10, "#FF0000", 2, 0, 0, 0, 0);
-	}
-};
-
-function onMove(data) {
-	if (data.id != me.id) {
-		dir = data.direction;
-		if (dir == "left") {  //left
-			enemies[data.id].dx = -enemies[data.id].speed;
-			enemies[data.id].dy = 0;
-		}
-		else if (dir == "right") { //right
-			enemies[data.id].dx = enemies[data.id].speed;
-			enemies[data.id].dy = 0;
-		}
-		else if (dir == "up") { //up
-			enemies[data.id].dx = 0;
-			enemies[data.id].dy = -enemies[data.id].speed;
-		}
-		else if (dir == "down") { //down
-			enemies[data.id].dx = 0;
-			enemies[data.id].dy = enemies[data.id].speed;
-		}
-		else if (dir == "stop") { //stop
-			enemies[data.id].dx = 0;
-			enemies[data.id].dy = 0;
-		}
+		enemies[data.id] = new pellet(data.x, data.y, 10, 10, "#FF0000", 100, 0, 0, 0);
 	}
 };
 
@@ -170,18 +143,15 @@ function onSync(data) {
 	else
 		syncing = enemies[data.id];
 
-	syncing.lastX = syncing.x;
-	syncing.lastY = syncing.y;
-	syncing.frame = 0;
-
 	syncing.x = data.x;
 	syncing.y = data.y;
 	syncing.dx = data.dx;
 	syncing.dy = data.dy;
-	syncing.w = data.w;
-	syncing.h = data.h;
-	syncing.speed = data.speed;
 	syncing.score = data.score;
+	
+	syncing.w = 10 + (2 * syncing.score);
+	syncing.h = 10 + (2 * syncing.score);
+	syncing.speed = 100 * Math.pow(0.95, syncing.score);
 };
 
 function onRemovePlayer(data){
@@ -205,21 +175,16 @@ var addPellet = function (pellet) {
 }
 
 //Pellet class
-function pellet(x, y, w, h, fill, speed, score, movex, movey, wait, lx, ly, f) {
+function pellet(x, y, w, h, fill, speed, score, movex, movey) {
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
     this.h = h || 10;
     this.fill = fill || "#AAAAAA";
-    this.speed = speed || 2;
+    this.speed = speed || 100;
     this.score = score || 0;
     this.dx = movex || 0;
     this.dy = movey || 0;
-    this.wait = wait || 0;
-
-    this.lastX = lx || 0;
-    this.lastY = ly || 0;
-    this.frame = f || 0;
 }
 
 //Pellet helper function to draw pellet
@@ -234,21 +199,9 @@ pellet.prototype.die = function() {
     this.w = 10;
     this.h = 10;
     this.score = 0;
-    this.speed = 2;
+    this.speed = 100;
 	this.dx = 0;
 	this.dy = 0;
-}
-
-pellet.prototype.eat = function (i) {
-	this.score++;
-    pellets.splice(i, 1);
-	this.x -= 1;
-	this.y -= 1;
-    this.w += 2;
-    this.h += 2;
-    this.speed *= 0.9;
-    this.wait = (this.w - 10) / 2;
-    //addPellet(new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, "#AAAAAA"));
 }
 
 // Eat player
@@ -260,56 +213,20 @@ pellet.prototype.eatPlayer = function (player) {
 		this.w += (player.score + 1) * 2;
 		this.h += (player.score + 1) * 2;
 		this.speed *= Math.pow(0.9, player.score + 1);
-		this.wait = (this.w - 10) / 2;
 		player.die();
 	}
 }
 
 //Check collision with walls or pellets
 var checkCollide = function () {
-
     //Wall collision
     if (me.x < 0 || (me.x + me.w) > width || me.y < 0 || (me.y + me.h) > height) {
         me.die();
     }
-	/*
-    if (enemy.x < 0 || (enemy.x + enemy.w) > width || enemy.y < 0 || (enemy.y + enemy.h) > height) {
-        enemy.die();
-    }
-	
-    //Check collision between players
-    var i;
-    for (i = 0; i < enemies.length; i++) {
-        if (me.x <= (enemies[i].x + enemies[i].w) && enemies[i].x <= (me.x + me.w) && me.y <= (enemies[i].y + enemies[i].h) && enemies[i].y <= (me.y + me.h)) {
-            if (me.score > enemies[i].score) {
-                me.eatPlayer(enemies[i]);
-            }
-            else if (me.score < enemies[i].score) {
-                enemies[i].eatPlayer(me);
-            }
-            else {
-                me.die();
-                enemies[i].die();
-            }
-        }
-    }
-	*/
-
-		/*
-    //Collision with pellets
-    for (var i = 0; i < pellets.length; i++) {
-        if (me.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (me.x + me.w) && me.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (me.y + me.h)) {
-            me.eat(i);
-        }
-        if (enemy.x <= (pellets[i].x + pellets[i].w) && pellets[i].x <= (enemy.x + enemy.w) && enemy.y <= (pellets[i].y + pellets[i].h) && pellets[i].y <= (enemy.y + enemy.h)) {
-            enemy.eat(i);
-        }
-    }
-		*/
 }
 
 //Reads input from keyboard and moves player accordingly
-var update = function () {
+var update = function (currentFPS) {
     //checkCollide();
 
     if (confirm) {
@@ -350,25 +267,16 @@ var update = function () {
 			lastEvent = null;
 		});
     }
+	
+	var deltaTime = 1 / currentFPS;
 
-    if (me.frame > 0) {
-        me.x += (me.x - me.lastX) / (1 + me.frame);
-        me.y += (me.y - me.lastY) / (1 + me.frame);
-    }
-
-    //if (me.wait < 0) {
-    //    me.x += me.dx;
-    //    me.y += me.dy;
-    //}
-    //me.wait -= 10;
+	me.x += me.dx * deltaTime;
+	me.y += me.dy * deltaTime;
 	
 	
 	for (var id in enemies) {
-		if (enemies[id].wait < 0) {
-			enemies[id].x += enemies[id].dx;
-			enemies[id].y += enemies[id].dy;
-		}
-		enemies[id].wait -= 10;
+		enemies[id].x += enemies[id].dx * deltaTime;
+		enemies[id].y += enemies[id].dy * deltaTime;
 	}
 }
 
@@ -378,11 +286,8 @@ var render = function () {
         pellets[i].draw(ctx);
     }
     me.draw(ctx);
-    me.frame++;
-    message = me.frame;
     for (var id in enemies) {
         enemies[id].draw(ctx);
-        enemies[id].frame++;
     }
 }
 
@@ -400,12 +305,13 @@ var ping = function () {
 	}
 }
 
-var messageTimeout = 0;
 //Main Game Loop
 var main = function () {
 	if (me !== undefined) {
+		var currentFPS = fps.getFPS();
+	
 		clean();
-		update();
+		update(currentFPS);
 		render();
 		ping();
 		
@@ -420,15 +326,14 @@ var main = function () {
 
 		ctx.fillStyle = "#FFFFFF";
 		ctx.textAlign = "right";
-		ctx.fillText(fps.getFPS() + " FPS", canvas.width, 5);
-
-		//if (++messageTimeout < 60*5) {
-		//	message = "(" + me.x + ", " + me.y + ") at " + me.speed;
-		//	ctx.font = "24px Helvetica";
-		//	ctx.textAlign = "center";
-		//	ctx.fillText(check, canvas.width / 2, canvas.height / 2);
-		//	//ctx.fillText(message, canvas.width / 2, canvas.height / 3);
-		//}
+		ctx.fillText(currentFPS + " FPS", canvas.width, 5);
+		
+		if (messageTimeout > 0) {
+			ctx.font = "24px Helvetica";
+			ctx.textAlign = "center";
+			ctx.fillText(check, canvas.width / 2, canvas.height / 2);
+			messageTimeout -= 1 / currentFPS;
+		}
 	}
 }
 
