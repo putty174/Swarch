@@ -13,7 +13,15 @@
     <br>
     <center>Password: <input type="password" id="pass"></center>
     <br>
-    <center><button type="button" onclick="start()">Log In</button><button type="button" onclick="score()">Rankings</button></center>
+    <center><button type="button" onclick="start()">Log In</button><button type="button" onclick="score()">Rankings</button>
+        <select id="num" onchange="fillRanking()">
+            <option value="5" selected="selected">5</option>
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="All">All</option>
+        </select></center>
     <script src="/swarch.js"></script>
     <br>
     <center>

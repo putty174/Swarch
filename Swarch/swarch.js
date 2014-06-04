@@ -2,6 +2,8 @@ var message;
 
 var socket = io.connect(location.hostname, { port: location.port, transports: ["websocket"] });
 
+var setHandlers = false;
+
 var name;
 var hashpass;
 
@@ -45,8 +47,21 @@ var fps = {
 };
 
 function fillRanking() {
-    socket.emit('ranking', { num: 5 });
-    setEventHandlers();
+    var rankings = document.getElementById('ranking');
+    var stop = rankings.rows.length;
+    var i = 1;
+    while (i != stop) {
+        rankings.deleteRow(1);
+        i++
+    }
+
+    var index = document.getElementById("num");
+    var numbers = parseInt(index.options[index.selectedIndex].value);
+    socket.emit('ranking', { num: numbers });
+    if (!setHandlers) {
+        setEventHandlers();
+        setHandlers = true;
+    }
 }
 
 function score() {
@@ -66,7 +81,7 @@ function start() {
 	name = document.getElementById('name').value;
 	var pass = document.getElementById('pass').value;
 	hashPass = CryptoJS.MD5(pass) + "";
-	
+
 	document.write("Name: " + name + "<br>");
 	document.write("Pass: " + pass + "<br>");
 	document.write("MD5 Hash: " + hashPass + "<br>");
@@ -82,7 +97,10 @@ function start() {
 	socket.emit("login", { username: name, password: hashPass });
 
 	setup();
-	setEventHandlers();
+	if (!setHandlers) {
+	    setEventHandlers();
+	    setHandlers = true;
+	}
 }
 
 var setEventHandlers = function () {
@@ -100,6 +118,7 @@ var setEventHandlers = function () {
 
 function onRanking(data) {
     var rankings = document.getElementById('ranking');
+
     var row = rankings.insertRow(-1);
     var cell1 = row.insertCell(0);
     var cell2 = row.insertCell(1);
