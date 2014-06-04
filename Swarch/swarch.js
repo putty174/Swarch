@@ -236,6 +236,7 @@ function onSync(data) {
 function onRemovePlayer(data){
 	console.log("Player " + data.id + " has left the game.");
 	delete enemies[data.id];
+	scoreboard.deleteRow(scoreboard.rows.length - 1);
 };
 
 function onPing(data) {
