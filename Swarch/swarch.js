@@ -169,7 +169,7 @@ function onSetup(data) {
 	var cell1 = row.insertCell(0);
 	var cell2 = row.insertCell(1);
 
-	cell1.innerHTML = name;
+	cell1.innerHTML = data.id;
 	cell2.innerHTML = 0;
 }
 
@@ -223,7 +223,13 @@ function onSync(data) {
 	syncing.h = 10 + (2 * syncing.score);
 	syncing.speed = 100 * Math.pow(0.95, syncing.score);
 
-	scoreboard[syncIndex][1].innerHTML = syncIndex;
+	scoreboard.deleteRow(syncIndex);
+	var row = scoreboard.insertRow(syncIndex);
+	var cell1 = row.insertCell(0);
+	var cell2 = row.insertCell(1);
+
+	cell1.innerHTML = data.id;
+	cell2.innerHTML = data.score;
 	syncIndex++;
 };
 
