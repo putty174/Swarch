@@ -25,6 +25,9 @@ canvas.width = width;
 canvas.height = height;
 var ctx = canvas.getContext("2d");
 
+var scoreboard = document.createElement("table");
+scoreboard.setAttribute('border', '1');
+
 // FPS Counter
 var fps = {
 	startTime : 0,
@@ -90,6 +93,7 @@ function start() {
 	document.body.appendChild(logOut);
 	document.write("<br>");
 	document.body.appendChild(canvas);
+	document.body.appendChild(scoreboard);
 
 	socket.emit("login", { username: name, password: hashPass });
 
@@ -160,12 +164,26 @@ function onSetup(data) {
     me = new pellet(data.x, data.y, 10, 10, "#00FF00", 100, 0, 0, 0);
 	me.id = data.id;
 	console.log("ID: " + me.id);
+
+	var row = scoreboard.insertRow(-1);
+	var cell1 = row.insertCell(0);
+	var cell2 = row.insertCell(1);
+
+	cell1.innerHTML = name;
+	cell2.innerHTML = 0;
 }
 
 function onNewPlayer(data) {
 	if (data.id != me.id) {
 		console.log("New player connected: " + data.id);
 		enemies[data.id] = new pellet(data.x, data.y, 10, 10, "#FF0000", 100, 0, 0, 0);
+
+		var row = scoreboard.insertRow(-1);
+		var cell1 = row.insertCell(0);
+		var cell2 = row.insertCell(1);
+
+		cell1.innerHTML = data.id;
+		cell2.innerHTML = 0;
 	}
 };
 
@@ -184,12 +202,16 @@ function onNewPellet(data) {
 	}
 };
 
+
+var syncIndex = 0;
 function onSync(data) {
 	var syncing;
-	if (data.id == me.id)
-		syncing = me;
+	if (data.id == me.id) {
+	    syncing = me;
+	    syncIndex = 0;
+	}
 	else
-		syncing = enemies[data.id];
+	    syncing = enemies[data.id];
 
 	syncing.x = data.x;
 	syncing.y = data.y;
@@ -200,6 +222,9 @@ function onSync(data) {
 	syncing.w = 10 + (2 * syncing.score);
 	syncing.h = 10 + (2 * syncing.score);
 	syncing.speed = 100 * Math.pow(0.95, syncing.score);
+
+	scoreboard[syncIndex][1].innerHTML = syncIndex;
+	syncIndex++;
 };
 
 function onRemovePlayer(data){
