@@ -46,6 +46,7 @@ var fps = {
 
 function fillRanking() {
     socket.emit('ranking', { num: 5 });
+    setEventHandlers();
 }
 
 function score() {
@@ -95,11 +96,9 @@ var setEventHandlers = function () {
     socket.on("remove player", onRemovePlayer);
     socket.on("ping", onPing);
     socket.on("ranking", onRanking);
-    document.write("no");
 };
 
 function onRanking(data) {
-    document.write("yes");
     var rankings = document.getElementById('ranking');
     var row = rankings.insertRow(-1);
     var cell1 = row.insertCell(0);

@@ -111,11 +111,10 @@ function onSocketConnection(client){
 function onRanking(data) {
     temp = this;
     util.log("Ranking recieved");
-    db.users.find().sort({ score: -1 }, function (err, docs) {
+    db.users.find().limit(data.num).sort({ score: -1 }, function (err, docs) {
         var i;
         for (i = 0; i < docs.length; i++) {
-            temp.emit("ranking", { pos: i, name: docs[i].user, score: docs[i].score });
-            util.log(i + ">>" + docs[i].user + ": " + docs[i].score);
+            temp.emit("ranking", { pos: (i + 1), name: docs[i].user, score: docs[i].score });
         }
     });
 }
