@@ -120,6 +120,7 @@ function onClientDisconnect() {
 	this.broadcast.emit("remove player", { id: playerid });
 	db.scores.remove({ user: playerid });
 	delete players[playerid];
+	sync();
 };
 
 function onLogin(data) {
