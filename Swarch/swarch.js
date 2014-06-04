@@ -26,7 +26,6 @@ canvas.height = height;
 var ctx = canvas.getContext("2d");
 
 var scoreboard = document.createElement("table");
-scoreboard.setAttribute('border', '1');
 
 // FPS Counter
 var fps = {
