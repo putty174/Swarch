@@ -4,9 +4,6 @@ var socket = io.connect(location.hostname, { port: location.port, transports: ["
 
 var setHandlers = false;
 
-var name;
-var hashpass;
-
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
 var confirm = false;
 var time = Date.now();
@@ -78,9 +75,9 @@ function score() {
 
 //Setup script to prepare for game
 function start() {
-	name = document.getElementById('name').value;
+	var name = document.getElementById('name').value;
 	var pass = document.getElementById('pass').value;
-	hashPass = CryptoJS.MD5(pass) + "";
+	var hashPass = CryptoJS.MD5(pass) + "";
 
 	document.write("Name: " + name + "<br>");
 	document.write("Pass: " + pass + "<br>");
@@ -217,8 +214,7 @@ function onPing(data) {
 
 //Setup game by placing objects
 var setup = function () {
-    //socket.emit("new player");
-    socket.emit("new player", { name: name, pass: hashpass });
+    socket.emit("new player");
 }
 
 //Add pellets to list of pellets
