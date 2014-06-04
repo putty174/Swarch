@@ -30,15 +30,17 @@ function init() {
         socket.set("transports", ["websocket"]);
         socket.set("log level", 2);
     });
-    pellets.push(new pellet(width * 0.25, height * 0.25, 10, 10, 0, -1));
-    pellets.push(new pellet(width * 0.25, height * 0.75, 10, 10, 0, -1));
-    pellets.push(new pellet(width * 0.75, height * 0.25, 10, 10, 0, -1));
-    pellets.push(new pellet(width * 0.75, height * 0.75, 10, 10, 0, -1));
+    pellets.push(new pellet("", "", width * 0.25, height * 0.25, 10, 10, 0, -1));
+    pellets.push(new pellet("", "", width * 0.25, height * 0.75, 10, 10, 0, -1));
+    pellets.push(new pellet("", "", width * 0.75, height * 0.25, 10, 10, 0, -1));
+    pellets.push(new pellet("", "", width * 0.75, height * 0.75, 10, 10, 0, -1));
     setEventHandlers();
 };
 
 //Pellet class
-function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum, t, latency) {
+function pellet(n, p, x, y, w, h, speed, score, movex, movey, wait, idnum, t, latency) {
+    this.name = n || "";
+    this.pass = p || "";
     this.x = x || 0;
     this.y = y || 0;
     this.w = w || 10;
@@ -55,6 +57,7 @@ function pellet(x, y, w, h, speed, score, movex, movey, wait, idnum, t, latency)
 
 //Pellet die
 pellet.prototype.die = function () {
+    db.users.update({ user: this.name }, { $set: { score: this.score } });
     this.x = Math.min(width * Math.random(), width - 10);
     this.y = Math.min(height * Math.random(), height - 10);
     this.w = 10;
@@ -63,7 +66,7 @@ pellet.prototype.die = function () {
     this.speed = 100;
     this.dx = 0;
     this.dy = 0;
-	sync();
+    sync();
 }
 
 //Pellet eat another and grow
@@ -101,7 +104,21 @@ function onSocketConnection(client){
     
     client.on("ping", onPing);
     client.on("pong", onPong);
+
+    client.on("ranking", onRanking);
 };
+
+function onRanking(data) {
+    temp = this;
+    util.log("Ranking recieved");
+    db.users.find().sort({ score: -1 }, function (err, docs) {
+        var i;
+        for (i = 0; i < docs.length; i++) {
+            temp.emit("ranking", { pos: i, name: docs[i].user, score: docs[i].score });
+            util.log(i + ">>" + docs[i].user + ": " + docs[i].score);
+        }
+    });
+}
 
 function onClientDisconnect() {
 	var playerid = this.username;
@@ -127,7 +144,7 @@ function onLogin(data) {
 	
 	db.users.count({user: name}, function(err, count) {
 		if (count == 0) {
-			db.users.save({user: name, password: pass});
+			db.users.save({user: name, password: pass, score: 0});
 			util.log("Registered new user: " + name);
 			temp.emit("verify", { success: "new" });
 		}
@@ -146,7 +163,7 @@ function onLogin(data) {
 function onNewPlayer(data) {
     var playerid = this.username;
 	util.log("New Player: " + playerid);
-	players[playerid] = new pellet(Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 100, 0);
+	players[playerid] = new pellet(data.name, data.pass, Math.min(width * Math.random(), width - 10), Math.min(height * Math.random(), height - 10), 10, 10, 100, 0);
 	this.emit("setup", { id: playerid, x: players[playerid].x, y: players[playerid].y });
     
 	for (var i = 0; i < pellets.length; i++) {

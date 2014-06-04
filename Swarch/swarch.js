@@ -1,6 +1,9 @@
 var message;
 
-var socket;
+var socket = io.connect(location.hostname, { port: location.port, transports: ["websocket"] });
+
+var name;
+var hashpass;
 
 var check = "Confirming login...";  //Login Information check, haven't decided if 1/0, true/false, w/e.
 var confirm = false;
@@ -41,11 +44,27 @@ var fps = {
 	}	
 };
 
+function fillRanking() {
+    socket.emit('ranking', { num: 5 });
+}
+
+function score() {
+    var rankings = document.getElementById('ranking');
+    var row = rankings.insertRow(-1);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+
+    cell1.innerHTML = "1";
+    cell2.innerHTML = "me";
+    cell3.innerHTML = "9001";
+}
+
 //Setup script to prepare for game
 function start() {
-	var name = document.getElementById('name').value;
+	name = document.getElementById('name').value;
 	var pass = document.getElementById('pass').value;
-	var hashPass = CryptoJS.MD5(pass) + "";
+	hashPass = CryptoJS.MD5(pass) + "";
 	
 	document.write("Name: " + name + "<br>");
 	document.write("Pass: " + pass + "<br>");
@@ -58,8 +77,7 @@ function start() {
 	document.body.appendChild(logOut);
 	document.write("<br>");
 	document.body.appendChild(canvas);
-	
-	socket = io.connect(location.hostname, { port: location.port, transports: ["websocket"] });
+
 	socket.emit("login", { username: name, password: hashPass });
 
 	setup();
@@ -75,8 +93,23 @@ var setEventHandlers = function () {
     socket.on("new pellet", onNewPellet);
     socket.on("sync", onSync);
     socket.on("remove player", onRemovePlayer);
-	socket.on("ping", onPing);
+    socket.on("ping", onPing);
+    socket.on("ranking", onRanking);
+    document.write("no");
 };
+
+function onRanking(data) {
+    document.write("yes");
+    var rankings = document.getElementById('ranking');
+    var row = rankings.insertRow(-1);
+    var cell1 = row.insertCell(0);
+    var cell2 = row.insertCell(1);
+    var cell3 = row.insertCell(2);
+
+    cell1.innerHTML = data.pos;
+    cell2.innerHTML = data.name;
+    cell3.innerHTML = data.score;
+}
 
 function onSocketConnected() {
     console.log("Connected to socket server");
@@ -166,7 +199,8 @@ function onPing(data) {
 
 //Setup game by placing objects
 var setup = function () {
-	socket.emit("new player");
+    //socket.emit("new player");
+    socket.emit("new player", { name: name, pass: hashpass });
 }
 
 //Add pellets to list of pellets

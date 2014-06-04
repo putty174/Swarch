@@ -7,18 +7,23 @@
     <script src="/md5.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<body onload="fillRanking()">
     <center><h1>Swarch</h1></center>
-    <!--<form name="login" action="" method="get">
-        <center>Name: <input type="text" name="name" /><br /></center>
-        <center>Pass: <input type="password" name="pass" /><br /></center>
-        <center><input type="button" name="submit" value="Submit" onclick="this.start()" /></center>
-    </form>-->
     <center>Username: <input type="text" id="name"></center>
     <br>
     <center>Password: <input type="password" id="pass"></center>
     <br>
-    <center><button type="button" onclick="start()">Log In</button></center>
+    <center><button type="button" onclick="start()">Log In</button><button type="button" onclick="score()">Rankings</button></center>
     <script src="/swarch.js"></script>
+    <br>
+    <center>
+        <table style="width:300px" border="1" id="ranking">
+            <tr>
+                <th>Ranking</th>
+                <th>Username</th>
+                <th>Score</th>
+            </tr>
+        </table>
+    </center>
 </body>
 </html>
